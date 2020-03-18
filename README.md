@@ -1,1 +1,2 @@
-# Energy-Log-Server-7.x
+# Energy Logserver
+Energy Logserver User Guide

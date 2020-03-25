@@ -1,275 +1,367 @@
 # Upgrades #
 
-## Updating from 6.1.7
+## Upgrade from 6.x
 
-1. Before the upgrade on both client and data node:
+The update includes packages:
 
-- You have to upgrade JAVA version. After that set JAVA 11 with "alternatives":
+- Energy-logserver-data-node
+- Energy-logserver-client-node
 
-  ```bash
-  yum install java-11-openjdk-headless
-  
-  alternatives --config java
-  There is 2 program that provides 'java'.
-  
-    Selection    Command
-  -----------------------------------------------
-  *  1           java-1.8.0-openjdk.x86_64 (/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.242.b08-0.el7_7.x86_64/jre/bin/java)
-   + 2           java-11-openjdk.x86_64 (/usr/lib/jvm/java-11-openjdk-11.0.6.10-1.el7_7.x86_64/bin/java)
-  
-  Enter to keep the current selection[+], or type selection number:
-  ```
+### Upgrade Energy Logserver Data Node
 
-- Compare `jvm.options.rpmnew` to your current file. Garbage collector options have to be updated manually - otherwise Elasticsearch service will fail on restart:
-
-  ```bash
-  imdiff /etc/elasticsearch/jvm.options /etc/elasticsearch/jvm.options.rpmnew
-  ```
-
-  Old configuration:
-
-  ```bash
-  ## GC configuration
-  -XX:-UseParNewGC
-  -XX:-UseConcMarkSweepGC
-  -XX:MaxGCPauseMillis=200
-  -XX:+UseG1GC
-  -XX:GCPauseIntervalMillis=1000
-  -XX:InitiatingHeapOccupancyPercent=35
-  ```
-
-​		New configuration:
+1. Upload Package
 
 ```bash
-## GC configuration
-8-9:-XX:+UseConcMarkSweepGC
-8-9:-XX:CMSInitiatingOccupancyFraction=75
-8-9:-XX:+UseCMSInitiatingOccupancyOnly
-
-## G1GC Configuration
-# NOTE: G1GC is only supported on JDK version 10 or later.
-# To use G1GC uncomment the lines below.
-10-:-XX:+UseG1GC
-10-:-XX:MaxGCPauseMillis=300
-10-:-XX:G1ReservePercent=25
-10-:-XX:InitiatingHeapOccupancyPercent=30
+scp ./energy-logserver-data-node-7.0.1-1.el7.x86_64.rpm root@hostname:~/
 ```
 
-2. Update rpms with yum:
+2. Check Cluster Status
 
 ```bash
-yum update energy-logserver-client-node-6.1.8-1.x86_64.rpm
-yum update energy-logserver-data-node-6.1.8-1.x86_64.rpm
+export CREDENTIAL="logserver:logserver"
+
+curl -s -u $CREDENTIAL localhost:9200/_cluster/health?pretty
 ```
 
+​	Output:
 
-
-## Updating from 6.1.6
-
-1. Client Node
-
-		bash
-		yum install energy-logserver-client-node-6.1.7-1.x86_64.rpm
-
-	In case of an error:
-
-		Transaction check error:
-		  file /usr/lib/python2.7/site-packages/urllib3/packages/ssl_match_hostname from install of python-urllib3-1.10.2-7.el7.noarch conflicts with file from package energy-logserver-client-node-6.1.6-1.x86_64
-
-	Remove below directories (this files will be replaced by packages from centOS base and epel repositories):
-
-		bash
-		rm -rf /usr/lib/python2.7/site-packages/urllib3 /usr/lib/python2.7/site-packages/urllib3-1.22.dist-info/
-
-1. Data Node
-
-		bash
-		yum install energy-logserver-data-node-6.1.7-1.x86_64.rpm
-
-1. Reveiw *.rpmnew files (with vimdiff for example):
-
-	
-		vimdiff /etc/kibana/kibana.yml /etc/kibana/kibana.yml.rpmnew
-		vimdiff /etc/elasticsearch/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml.rpmnew
-
-1. Upload new default template (if you have been using old one already):
-
-		curl -k -XPUT -H 'Content-Type: application/json' -u logserver:logserver 'http://127.0.0.1:9200/_template/default-base-template-0' -d@/usr/share/elasticsearch/default-base-template-0.json
-
-1. Upload default windows Alert rules:
-
-		/usr/share/kibana/elasticdump/elasticdump --input=/usr/share/kibana/kibana_objects/SIEM_Windows_RulesAlerts.json --type=data --output="http://logserver:logserver@127.0.0.1:9200/"
-
-1. Restart services:  
-	**(Elasticsearch may take long time to start after restart due to great number of shards)**
-
-	- Client node
-		
-			systemctl restart kibana alert
-			systemctl restart elasticsearch
-
-	- Data node (if you run single node setup this can be omitted)
-
-			systemctl restart elasticsearch
-
-	**Elasticsearch may take long time to start after restart due to great number of shards**
-
-## Updating from 6.1.5
-### Changes to alert indices (pre-update)
-
-There were changes to alert* indices in the newest version and this index have to be remade. Before the update you need to do:
-
-1. Stop alert service:  
-	
-		sudo systemctl stop alert
-
-1. Run this only if you want to keep alert* data:
-
-	- PUT Temporary template:
-
-			curl -ulogserver:********* "elasticsearch_data_node:9200/_template/alert_old" -H 'Content-Type: application/json' -d'{"order":10,"index_patterns":["alert*-old"],"settings":{"index":{"number_of_shards":1,"auto_expand_replicas":"0-2","number_of_replicas":"0"}},"mappings":{"_default_":{"properties":{"match_body":{"type":"object","enabled":false}}}}}' -X PUT
-
-	- Reindex alert* indices:
 ```bash
-for idx_name in alert alert_error alert_past alert_silence alert_status; do echo ${idx_name}; curl -ulogserver:********* -X POST "elasticsearch_data_node:9200/_reindex" -H 'Content-Type: application/json' -d"
 {
-  "source": {
-    "index": "${idx_name}"
-  },
-  "dest": {
-    "index": "${idx_name}-old"
-  }
-}"; echo; done
+    "cluster_name" : "elasticsearch",
+    "status" : "green",
+    "timed_out" : false,
+    "number_of_nodes" : 1,
+    "number_of_data_nodes" : 1,
+    "active_primary_shards" : 25,
+    "active_shards" : 25,
+    "relocating_shards" : 0,
+    "initializing_shards" : 0,
+    "unassigned_shards" : 0,
+    "delayed_unassigned_shards" : 0,
+    "number_of_pending_tasks" : 0,
+    "number_of_in_flight_fetch" : 0,
+    "task_max_waiting_in_queue_millis" : 0,
+    "active_shards_percent_as_number" : 100.0
+   }
 ```
-	- Delete temporary template:
-	
-			curl -ulogserver:********* "elasticsearch_data_node:9200/_template/alert_old" -XDELETE
-	
-	- Delete default template if you have one installed (you can recover it after installation):
-	
-			curl -ulogserver:********* "elasticsearch_data_node:9200/_template/default-system-indices" -XDELETE
 
-1. Delete old alert* indices:
+3. Upgrade Energy Logserver Package
 
-			curl -u logserver:********* "elasticsearch_data_node:9200/alert,alert_error,alert_past,alert_silence,alert_status" -XDELETE
-
-1. Proceed with the update. We will come back to alert* indices later.
-
-### Data node update:
-
-1. First, you need to remove an older version from rpm database:
-
-		rpm -e --justdb energy-logserver-data-node-6.1.5-1.x86_64
-
-1. Now install it with yum:
-
-		yum install energy-logserver-data-node-6.1.6-1.x86_64.rpm`
-
-1. After the successful installation restart Elasticsearch service (depending on the amount of data you have on the node it might take some time):
-
-		sudo systemctl restart elasticsearch
-
-1. Wait for Elasticsearch status to return at least yellow status:  
-
-		curl -sS -XGET --insecure --user logserver:********* "elasticsearch_data_node:9200/_cluster/health?wait_for_status=yellow&pretty"`  
-
-	Example output:
-
-		{
-		  "cluster_name" : "logserver_node",
-		  "status" : "green",
-		  "timed_out" : false,
-		  "number_of_nodes" : 2,
-		  "number_of_data_nodes" : 2,
-		  "active_primary_shards" : 96,
-		  "active_shards" : 176,
-		  "relocating_shards" : 0,
-		  "initializing_shards" : 0,
-		  "unassigned_shards" : 0,
-		  "delayed_unassigned_shards" : 0,
-		  "number_of_pending_tasks" : 0,
-		  "number_of_in_flight_fetch" : 0,
-		  "task_max_waiting_in_queue_millis" : 0,
-		  "active_shards_percent_as_number" : 100.0
-		}
-
-### Client node update:
-
-1. For the client node part, all you should do is run:  
-
-		yum update energy-logserver-client-node-6.1.6-1.x86_64.rpm
-
-1. Make sure Kibana bundles are removed before the service restart:  
-
-		/bin/rm -rf /usr/share/kibana/optimize/bundles/*
-
-1. Restart the service:  
-
-		sudo systemctl restart kibana
-
-1. You can access to Kibana again after 5-10 minutes.
-
-### Changes to alert indices (post-update)
-
-1. After a successful update you should have newly created (during Elasticsearch restart) alert indices: 
-
-
-		curl -ulogserver:********* "elasticsearch_data_node:9200/_cat/indices/alert*"
-		
-		green open alert_error       1CAsfsk4R0-rRuCu_05O_g 1 1   0 0    460b    230b
-		green open alert_past        _310XBMwTNmvISKrjAKFDw 1 1   0 0    460b    230b
-		green open alert             ddILkZRkQKCxjeMWNeRXCQ 1 1   0 0    460b    230b
-		green open alert_status      XRvTBQN7QPmXdPhcjugQzQ 1 1   0 0    460b    230b
-		green open alert_silence     1bCdy2NaSYe5Ctc52cWD9A 1 1   0 0    460b    230b
-
-
-1. If you decided to keep old data you can now reindex them from indices you have created earlier:
 ```bash
-for idx_name in alert alert_error alert_past alert_silence alert_status; do echo ${idx_name}; curl -ulogserver:********* -X POST "elasticsearch_data_node:9200/_reindex" -H 'Content-Type: application/json' -d"
-{
-  "source": {
-    "index": "${idx_name}-old"
-  },
-  "dest": {
-    "index\": "${idx_name}"
-  }
-}"; echo; done
+yum update ./energy-logserver-data-node-7.0.1-1.el7.x86_64.rpm
 ```
 
-	- If you are sure that recovery was successful you can delete alert*-old:
-	
-			curl -u logserver:********* "elasticsearch_data_node:9200/alert-old,alert_silence-old,alert_status-old,alert_error-old" -XDELETE
-	
-	- Now you can recover the default template as well
-	
-			curl -XPUT -H 'Content-Type: application/json' -u logserver:********* "elasticsearch_data_node:9200/_template/default-base-template-0" -d@/usr/share/elasticsearch/default-base-template-0.json
+​	Output:
 
-## Updating from 6.1.3 and older
+```bash
+Loaded plugins: fastestmirror
+Examining ./energy-logserver-data-node-7.0.1-1.el7.x86_64.rpm: energy-logserver-data-node-7.0.1-1.el7.x86_64
+Marking ./energy-logserver-data-node-7.0.1-1.el7.x86_64.rpm as an update to energy-logserver-data-node-6.1.8-1.x86_64
+Resolving Dependencies
+--> Running transaction check
+---> Package energy-logserver-data-node.x86_64 0:6.1.8-1 will be updated
+---> Package energy-logserver-data-node.x86_64 0:7.0.1-1.el7 will be an update
+--> Finished Dependency Resolution
 
-In this case, you should run the same instruction as to when updating from 6.1.5 and above that, you should also run:
+Dependencies Resolved
+=======================================================================================================================================================================================
+ Package                                        Arch                       Version                            Repository                                                          Size
+=======================================================================================================================================================================================
+Updating:
+ energy-logserver-data-node                     x86_64                     7.0.1-1.el7                        /energy-logserver-data-node-7.0.1-1.el7.x86_64                     117 M
 
-### Changes to audit index (pre-update)
+Transaction Summary
+=======================================================================================================================================================================================
+Upgrade  1 Package
 
- 1. There have been changes to audit index and before the update, you should turn of audit logging:
+Total size: 117 M
+Is this ok [y/d/N]: y
+Downloading packages:
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Updating   : energy-logserver-data-node-7.0.1-1.el7.x86_64                                                                                                                       1/2
+Removed symlink /etc/systemd/system/multi-user.target.wants/elasticsearch.service.
+Created symlink from /etc/systemd/system/multi-user.target.wants/elasticsearch.service to /usr/lib/systemd/system/elasticsearch.service.
+  Cleanup    : energy-logserver-data-node-6.1.8-1.x86_64                                                                                                                           2/2
+  Verifying  : energy-logserver-data-node-7.0.1-1.el7.x86_64                                                                                                                       1/2
+  Verifying  : energy-logserver-data-node-6.1.8-1.x86_64                                                                                                                           2/2
 
-	- Login to Kibana app with an administrator account.  
-	- Go to Config tab.
-	- Go to Settings tab.
-	- In "Update Audit Setting" deselect all options and click the Update button.  
+Updated:
+  energy-logserver-data-node.x86_64 0:7.0.1-1.el7
 
-1. Remove the "audit" index:  
+Complete!
+```
 
-		curl -u logserver:********* "elasticsearch_data_node:9200/audit" -XDELETE
+4. Verification of Configuration Files
 
-### Data node update
+Please, verify your Elasticsearch configuration and JVM configuration in files:
 
-1. You should run everything as described in "Updating from 6.1.5" but **before** running `yum update`:
-bash
+- /etc/elasticsearch/jvm.options – check JVM HEAP settings and another parameters
 
-1. Make a copy of elasticsearch-auth plugin:
+```bash
+grep Xm /etc/elasticsearch/jvm.options <- old configuration file
+## -Xms4g
+## -Xmx4g
+# Xms represents the initial size of total heap space
+# Xmx represents the maximum size of total heap space
+-Xms600m
+-Xmx600m
+```
 
-		/bin/cp -rf /usr/share/elasticsearch/plugins/elasticsearch-auth/ ~/elasticsearch-auth_copy
+```bash
+cp /etc/elasticsearch/jvm.options.rpmnew /etc/elasticsearch/jvm.options
+cp: overwrite ‘/etc/elasticsearch/jvm.options’? y
+```
 
-1. Remove content of elasticsearch-auth directory:
+```bash
+vim /etc/elasticsearch/jvm.options
+```
 
-		rm -f /usr/share/elasticsearch/plugins/elasticsearch-auth/*
+- /etc/elasticsearch/elasticsearch.yml – verify elasticsearch configuration file
+
+- compare exiting /etc/elasticsearch/elasticsearch.yml and /etc/elasticsearch/elasticsearch.yml.rpmnew
+  5. Start and enable Elasticsearch service
+
+If everything went correctly, we will restart the Elasticsearch instance:
+
+```bash
+systemctl restart elasticsearch
+systemctl reenable elasticsearch
+```
+
+```bash
+systemctl status elasticsearch
+
+● elasticsearch.service - Elasticsearch
+   Loaded: loaded (/usr/lib/systemd/system/elasticsearch.service; enabled; vendor preset: disabled)
+   Active: active (running) since Wed 2020-03-18 16:50:15 CET; 57s ago
+     Docs: http://www.elastic.co
+ Main PID: 17195 (java)
+   CGroup: /system.slice/elasticsearch.service
+           └─17195 /etc/alternatives/jre/bin/java -Xms512m -Xmx512m -Djava.security.manager -Djava.security.policy=/usr/share/elasticsearch/plugins/elasticsearch_auth/plugin-securi...
+
+Mar 18 16:50:15 migration-01 systemd[1]: Started Elasticsearch.
+Mar 18 16:50:25 migration-01 elasticsearch[17195]: SSL not activated for http and/or transport.
+Mar 18 16:50:33 migration-01 elasticsearch[17195]: SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+Mar 18 16:50:33 migration-01 elasticsearch[17195]: SLF4J: Defaulting to no-operation (NOP) logger implementation
+Mar 18 16:50:33 migration-01 elasticsearch[17195]: SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for futher details.
+```
+
+6. Check cluster/indices status and Elasticsearch version
+
+Invoke curl command to check the status of Elasticsearch:
+
+```bash
+curl -s -u $CREDENTIAL localhost:9200/_cluster/health?pretty
+{
+  "cluster_name" : "elasticsearch",
+  "status" : "green",
+  "timed_out" : false,
+  "number_of_nodes" : 1,
+  "number_of_data_nodes" : 1,
+  "active_primary_shards" : 25,
+  "active_shards" : 25,
+  "relocating_shards" : 0,
+  "initializing_shards" : 0,
+  "unassigned_shards" : 0,
+  "delayed_unassigned_shards" : 0,
+  "number_of_pending_tasks" : 0,
+  "number_of_in_flight_fetch" : 0,
+  "task_max_waiting_in_queue_millis" : 0,
+  "active_shards_percent_as_number" : 100.0
+}
+```
+
+```bash
+curl -s -u $CREDENTIAL localhost:9200
+{
+  "name" : "node-1",
+  "cluster_name" : "elasticsearch",
+  "cluster_uuid" : "igrASEDRRamyQgy-zJRSfg",
+  "version" : {
+    "number" : "7.3.2",
+    "build_flavor" : "oss",
+    "build_type" : "rpm",
+    "build_hash" : "1c1faf1",
+    "build_date" : "2019-09-06T14:40:30.409026Z",
+    "build_snapshot" : false,
+    "lucene_version" : "8.1.0",
+    "minimum_wire_compatibility_version" : "6.8.0",
+    "minimum_index_compatibility_version" : "6.0.0-beta1"
+  },
+  "tagline" : "You Know, for Search"
+}
+```
+
+If everything went correctly, we should see 100% allocated shards in cluster health. However, while connection on port 9200/TCP we can observe a new version of Elasticsearch.
+
+### Upgrade Energy Logserver client Node
+
+1. Upload packages
+
+- Upload new rpm by scp/ftp:
+
+```bash
+scp ./energy-logserver-client-node-7.0.1-1.el7.x86_64.rpm root@hostname:~/
+```
+
+- Backup report logo file.
+
+2. Uninstall old version Energy Logserver GUI
+
+- Remove old package:
+
+```bash
+systemctl stop kibana alert
+```
+
+```bash
+yum remove energy-logserver-client-node
+Loaded plugins: fastestmirror
+Resolving Dependencies
+--> Running transaction check
+---> Package energy-logserver-client-node.x86_64 0:6.1.8-1 will be erased
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+=======================================================================================================================================================================================
+ Package                                           Arch                        Version                        Repository                                                          Size
+=======================================================================================================================================================================================
+Removing:
+ energy-logserver-client-node                      x86_64                      6.1.8-1                        @/energy-logserver-client-node-6.1.8-1.x86_64                      802 M
+
+Transaction Summary
+=======================================================================================================================================================================================
+Remove  1 Package
+
+Installed size: 802 M
+Is this ok [y/N]: y
+Downloading packages:
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Erasing    : energy-logserver-client-node-6.1.8-1.x86_64                                                                                                                         1/1
+warning: file /usr/share/kibana/plugins/node_modules.tar: remove failed: No such file or directory
+warning: /etc/kibana/kibana.yml saved as /etc/kibana/kibana.yml.rpmsave
+  Verifying  : energy-logserver-client-node-6.1.8-1.x86_64                                                                                                                         1/1
+
+Removed:
+  energy-logserver-client-node.x86_64 0:6.1.8-1
+
+Complete!
+```
+
+3. Install new version
+
+- Install new package:
+
+  ```bash
+  yum install ./energy-logserver-client-node-7.0.1-1.el7.x86_64.rpm
+  Loaded plugins: fastestmirror
+  Examining ./energy-logserver-client-node-7.0.1-1.el7.x86_64.rpm: energy-logserver-client-node-7.0.1-1.el7.x86_64
+  Marking ./energy-logserver-client-node-7.0.1-1.el7.x86_64.rpm to be installed
+  Resolving Dependencies
+  --> Running transaction check
+  ---> Package energy-logserver-client-node.x86_64 0:7.0.1-1.el7 will be installed
+  --> Finished Dependency Resolution
+  
+  Dependencies Resolved
+  
+  =======================================================================================================================================================================================
+   Package                                         Arch                      Version                           Repository                                                           Size
+  =======================================================================================================================================================================================
+  Installing:
+   energy-logserver-client-node                    x86_64                    7.0.1-1.el7                       /energy-logserver-client-node-7.0.1-1.el7.x86_64                    1.2 G
+  
+  Transaction Summary
+  =======================================================================================================================================================================================
+  Install  1 Package
+  
+  Total size: 1.2 G
+  Installed size: 1.2 G
+  Is this ok [y/d/N]: y
+  Downloading packages:
+  Running transaction check
+  Running transaction test
+  Transaction test succeeded
+  Running transaction
+    Installing : energy-logserver-client-node-7.0.1-1.el7.x86_64                                                                                                                     1/1
+  Generating a 2048 bit RSA private key
+  ..............................................................................................+++
+  ...........................................................................................................+++
+  writing new private key to '/etc/kibana/ssl/kibana.key'
+  -----
+  Removed symlink /etc/systemd/system/multi-user.target.wants/alert.service.
+  Created symlink from /etc/systemd/system/multi-user.target.wants/alert.service to /usr/lib/systemd/system/alert.service.
+  Removed symlink /etc/systemd/system/multi-user.target.wants/kibana.service.
+  Created symlink from /etc/systemd/system/multi-user.target.wants/kibana.service to /usr/lib/systemd/system/kibana.service.
+  Removed symlink /etc/systemd/system/multi-user.target.wants/cerebro.service.
+  Created symlink from /etc/systemd/system/multi-user.target.wants/cerebro.service to /usr/lib/systemd/system/cerebro.service.
+    Verifying  : energy-logserver-client-node-7.0.1-1.el7.x86_64                                                                                                                     1/1
+  
+  Installed:
+    energy-logserver-client-node.x86_64 0:7.0.1-1.el7
+  
+  Complete!
+  ```
+
+4. Start Energy Logserver GUI
+
+   Add service:
+
+   - ​	Kibana
+   - Cerebro
+   - Alert
+
+   to autostart, add port ( 5602/TCP ) for Cerebro. 
+
+   Run them and check status:
+
+   ```bash
+   firewall-cmd –permanent –add-port 5602/tcp
+   firewall-cmd –reload
+   ```
+
+   ```bash
+   systemctl enable kibana cerebro alert
+   Created symlink from /etc/systemd/system/multi-user.target.wants/kibana.service to /usr/lib/systemd/system/kibana.service.
+   Created symlink from /etc/systemd/system/multi-user.target.wants/cerebro.service to /usr/lib/systemd/system/cerebro.service.
+   Created symlink from /etc/systemd/system/multi-user.target.wants/alert.service to /usr/lib/systemd/system/alert.service.
+   [root@migration-01 vagrant]#
+   [root@migration-01 vagrant]# systemctl start kibana cerebro alert
+   [root@migration-01 vagrant]# systemctl status kibana cerebro alert
+   ● kibana.service - Kibana
+      Loaded: loaded (/usr/lib/systemd/system/kibana.service; enabled; vendor preset: disabled)
+      Active: active (running) since Thu 2020-03-19 14:46:52 CET; 2s ago
+    Main PID: 12399 (node)
+      CGroup: /system.slice/kibana.service
+              └─12399 /usr/share/kibana/bin/../node/bin/node --no-warnings --max-http-header-size=65536 /usr/share/kibana/bin/../src/cli -c /etc/kibana/kibana.yml
+   
+   Mar 19 14:46:52 migration-01 systemd[1]: Started Kibana.
+   
+   ● cerebro.service - Cerebro
+      Loaded: loaded (/usr/lib/systemd/system/cerebro.service; enabled; vendor preset: disabled)
+      Active: active (running) since Thu 2020-03-19 14:46:52 CET; 2s ago
+    Main PID: 12400 (java)
+      CGroup: /system.slice/cerebro.service
+              └─12400 java -Duser.dir=/opt/cerebro -Dconfig.file=/opt/cerebro/conf/application.conf -cp -jar /opt/cerebro/lib/cerebro.cerebro-0.8.4-launcher.jar
+   
+   Mar 19 14:46:52 migration-01 systemd[1]: Started Cerebro.
+   
+   ● alert.service - Alert
+      Loaded: loaded (/usr/lib/systemd/system/alert.service; enabled; vendor preset: disabled)
+      Active: active (running) since Thu 2020-03-19 14:46:52 CET; 2s ago
+    Main PID: 12401 (elastalert)
+      CGroup: /system.slice/alert.service
+              └─12401 /opt/alert/bin/python /opt/alert/bin/elastalert
+   
+   Mar 19 14:46:52 migration-01 systemd[1]: Started Alert.
+   
+   ```
+
+   
+

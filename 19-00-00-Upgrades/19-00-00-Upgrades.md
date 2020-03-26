@@ -122,32 +122,32 @@ The update includes packages:
     - /etc/elasticsearch/elasticsearch.yml – verify elasticsearch configuration file
 
     - compare exiting /etc/elasticsearch/elasticsearch.yml and /etc/elasticsearch/elasticsearch.yml.rpmnew
-  5. Start and enable Elasticsearch service
+  1. Start and enable Elasticsearch service
 
     If everything went correctly, we will restart the Elasticsearch instance:
 
-    ```bash
-    systemctl restart elasticsearch
-    systemctl reenable elasticsearch
-    ```
+        ```bash
+        systemctl restart elasticsearch
+        systemctl reenable elasticsearch
+        ```
 
-    ```bash
-    systemctl status elasticsearch
+        ```bash
+        systemctl status elasticsearch
 
-    ● elasticsearch.service - Elasticsearch
-       Loaded: loaded (/usr/lib/systemd/system/elasticsearch.service; enabled; vendor preset: disabled)
-       Active: active (running) since Wed 2020-03-18 16:50:15 CET; 57s ago
-         Docs: http://www.elastic.co
-     Main PID: 17195 (java)
-       CGroup: /system.slice/elasticsearch.service
-               └─17195 /etc/alternatives/jre/bin/java -Xms512m -Xmx512m -Djava.security.manager -Djava.security.policy=/usr/share/elasticsearch/plugins/elasticsearch_auth/plugin-securi...
+        ● elasticsearch.service - Elasticsearch
+           Loaded: loaded (/usr/lib/systemd/system/elasticsearch.service; enabled; vendor preset: disabled)
+           Active: active (running) since Wed 2020-03-18 16:50:15 CET; 57s ago
+             Docs: http://www.elastic.co
+         Main PID: 17195 (java)
+           CGroup: /system.slice/elasticsearch.service
+                   └─17195 /etc/alternatives/jre/bin/java -Xms512m -Xmx512m -Djava.security.manager -Djava.security.policy=/usr/share/elasticsearch/plugins/elasticsearch_auth/plugin-securi...
 
-    Mar 18 16:50:15 migration-01 systemd[1]: Started Elasticsearch.
-    Mar 18 16:50:25 migration-01 elasticsearch[17195]: SSL not activated for http and/or transport.
-    Mar 18 16:50:33 migration-01 elasticsearch[17195]: SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
-    Mar 18 16:50:33 migration-01 elasticsearch[17195]: SLF4J: Defaulting to no-operation (NOP) logger implementation
-    Mar 18 16:50:33 migration-01 elasticsearch[17195]: SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for futher details.
-    ```
+        Mar 18 16:50:15 migration-01 systemd[1]: Started Elasticsearch.
+        Mar 18 16:50:25 migration-01 elasticsearch[17195]: SSL not activated for http and/or transport.
+        Mar 18 16:50:33 migration-01 elasticsearch[17195]: SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+        Mar 18 16:50:33 migration-01 elasticsearch[17195]: SLF4J: Defaulting to no-operation (NOP) logger implementation
+        Mar 18 16:50:33 migration-01 elasticsearch[17195]: SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for futher details.
+        ```
 
 1. Check cluster/indices status and Elasticsearch version
 

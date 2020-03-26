@@ -11,17 +11,17 @@ The update includes packages:
 
 1. Upload Package
 
-```bash
-scp ./itrs-log-analytics-data-node-7.0.1-1.el7.x86_64.rpm root@hostname:~/
-```
+    ```bash
+    scp ./itrs-log-analytics-data-node-7.0.1-1.el7.x86_64.rpm root@hostname:~/
+    ```
 
 1. Check Cluster Status
 
-```bash
-export CREDENTIAL="logserver:logserver"
+    ```bash
+    export CREDENTIAL="logserver:logserver"
 
-curl -s -u $CREDENTIAL localhost:9200/_cluster/health?pretty
-```
+    curl -s -u $CREDENTIAL localhost:9200/_cluster/health?pretty
+    ```
 
 ​	Output:
 

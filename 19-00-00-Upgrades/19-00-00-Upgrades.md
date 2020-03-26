@@ -122,8 +122,8 @@ The update includes packages:
     - /etc/elasticsearch/elasticsearch.yml – verify elasticsearch configuration file
 
     - compare exiting /etc/elasticsearch/elasticsearch.yml and /etc/elasticsearch/elasticsearch.yml.rpmnew
-  1. Start and enable Elasticsearch service
-
+    
+1. Start and enable Elasticsearch service
     If everything went correctly, we will restart the Elasticsearch instance:
 
         ```bash

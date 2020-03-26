@@ -314,50 +314,45 @@ The update includes packages:
        - Kibana
        - Cerebro
        - Alert
+    to autostart, add port ( 5602/TCP ) for Cerebro. Run them and check status:
+    ```bash
+    firewall-cmd –permanent –add-port 5602/tcp
+    firewall-cmd –reload
+    ```
 
-   to autostart, add port ( 5602/TCP ) for Cerebro. 
 
-   Run them and check status:
+    ```bash
+    systemctl enable kibana cerebro alert
+    Created symlink from /etc/systemd/system/multi-user.target.wants/kibana.service to /usr/lib/systemd/system/kibana.service.
+    Created symlink from /etc/systemd/system/multi-user.target.wants/cerebro.service to /usr/lib/systemd/system/cerebro.service.
+    Created symlink from /etc/systemd/system/multi-user.target.wants/alert.service to /usr/lib/systemd/system/alert.service.
+    [root@migration-01 vagrant]#
+    [root@migration-01 vagrant]# systemctl start kibana cerebro alert
+    [root@migration-01 vagrant]# systemctl status kibana cerebro alert
+    ● kibana.service - Kibana
+       Loaded: loaded (/usr/lib/systemd/system/kibana.service; enabled; vendor preset: disabled)
+       Active: active (running) since Thu 2020-03-19 14:46:52 CET; 2s ago
+     Main PID: 12399 (node)
+       CGroup: /system.slice/kibana.service
+               └─12399 /usr/share/kibana/bin/../node/bin/node --no-warnings --max-http-header-size=65536 /usr/share/kibana/bin/../src/cli -c /etc/kibana/kibana.yml
 
-       ```bash
-       firewall-cmd –permanent –add-port 5602/tcp
-       firewall-cmd –reload
-       ```
+    Mar 19 14:46:52 migration-01 systemd[1]: Started Kibana.
 
-       ```bash
-       systemctl enable kibana cerebro alert
-       Created symlink from /etc/systemd/system/multi-user.target.wants/kibana.service to /usr/lib/systemd/system/kibana.service.
-       Created symlink from /etc/systemd/system/multi-user.target.wants/cerebro.service to /usr/lib/systemd/system/cerebro.service.
-       Created symlink from /etc/systemd/system/multi-user.target.wants/alert.service to /usr/lib/systemd/system/alert.service.
-       [root@migration-01 vagrant]#
-       [root@migration-01 vagrant]# systemctl start kibana cerebro alert
-       [root@migration-01 vagrant]# systemctl status kibana cerebro alert
-       ● kibana.service - Kibana
-          Loaded: loaded (/usr/lib/systemd/system/kibana.service; enabled; vendor preset: disabled)
-          Active: active (running) since Thu 2020-03-19 14:46:52 CET; 2s ago
-        Main PID: 12399 (node)
-          CGroup: /system.slice/kibana.service
-                  └─12399 /usr/share/kibana/bin/../node/bin/node --no-warnings --max-http-header-size=65536 /usr/share/kibana/bin/../src/cli -c /etc/kibana/kibana.yml
+    ● cerebro.service - Cerebro
+       Loaded: loaded (/usr/lib/systemd/system/cerebro.service; enabled; vendor preset: disabled)
+       Active: active (running) since Thu 2020-03-19 14:46:52 CET; 2s ago
+     Main PID: 12400 (java)
+       CGroup: /system.slice/cerebro.service
+               └─12400 java -Duser.dir=/opt/cerebro -Dconfig.file=/opt/cerebro/conf/application.conf -cp -jar /opt/cerebro/lib/cerebro.cerebro-0.8.4-launcher.jar
 
-       Mar 19 14:46:52 migration-01 systemd[1]: Started Kibana.
+    Mar 19 14:46:52 migration-01 systemd[1]: Started Cerebro.
 
-       ● cerebro.service - Cerebro
-          Loaded: loaded (/usr/lib/systemd/system/cerebro.service; enabled; vendor preset: disabled)
-          Active: active (running) since Thu 2020-03-19 14:46:52 CET; 2s ago
-        Main PID: 12400 (java)
-          CGroup: /system.slice/cerebro.service
-                  └─12400 java -Duser.dir=/opt/cerebro -Dconfig.file=/opt/cerebro/conf/application.conf -cp -jar /opt/cerebro/lib/cerebro.cerebro-0.8.4-launcher.jar
+    ● alert.service - Alert
+       Loaded: loaded (/usr/lib/systemd/system/alert.service; enabled; vendor preset: disabled)
+       Active: active (running) since Thu 2020-03-19 14:46:52 CET; 2s ago
+     Main PID: 12401 (elastalert)
+       CGroup: /system.slice/alert.service
+               └─12401 /opt/alert/bin/python /opt/alert/bin/elastalert
 
-       Mar 19 14:46:52 migration-01 systemd[1]: Started Cerebro.
-
-       ● alert.service - Alert
-          Loaded: loaded (/usr/lib/systemd/system/alert.service; enabled; vendor preset: disabled)
-          Active: active (running) since Thu 2020-03-19 14:46:52 CET; 2s ago
-        Main PID: 12401 (elastalert)
-          CGroup: /system.slice/alert.service
-                  └─12401 /opt/alert/bin/python /opt/alert/bin/elastalert
-
-       Mar 19 14:46:52 migration-01 systemd[1]: Started Alert.
-
-       ```  
-
+    Mar 19 14:46:52 migration-01 systemd[1]: Started Alert.
+    ```

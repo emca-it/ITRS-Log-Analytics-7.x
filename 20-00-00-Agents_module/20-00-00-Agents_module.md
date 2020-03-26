@@ -1,6 +1,6 @@
 # The Agents module#
 
-The Agents module is used for the central management of agents used in Energy Logserver such as Filebeat, Winlogbeat, Packetbeat, Metricbeat.# Agent installation #
+The Agents module is used for the central management of agents used in ITRS Log Analytics such as Filebeat, Winlogbeat, Packetbeat, Metricbeat.# Agent installation #
 All necessary components can be found in the installation folder *${installation_folder}/utils/agents\_bin*.
 
 ## Component modules ##

@@ -1,11 +1,11 @@
 # Introduction #
 
-Energy Logserver is innovation solution allowing for centralize IT
+ITRS Log Analytics is innovation solution allowing for centralize IT
 systems events. It allows for an immediately review, analyze and
 reporting of system logs - the amount of data does not matter. 
-Energy Logserver is a response to the huge demand for storage and
+ITRS Log Analytics is a response to the huge demand for storage and
 analysis of the large amounts of data from IT systems. 
-Energy Logserver is innovation solution that responds to the need of
+ITRS Log Analytics is innovation solution that responds to the need of
 effectively processing large amounts of data coming from IT
 environments of today's organizations. Based on the open-source
 project Elasticsearch valued on the marked, we have created an
@@ -16,7 +16,7 @@ data correlation and visualization, alerting and reporting.
 
 ![](/media/media/image2_js.png) 
 
-Energy Logserver project was created to centralize events of all IT
+ITRS Log Analytics project was created to centralize events of all IT
 areas in the organization. We focused on creating a tool that
 functionality is most expected by IT departments. Because an effective
 licensing model has been applied, the solution can be implemented in

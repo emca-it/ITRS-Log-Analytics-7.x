@@ -4,7 +4,7 @@
 
 Where does the data come from?
 
-Energy Logserver is a solution allowing effective data processing
+ITRS Log Analytics is a solution allowing effective data processing
 from the IT environment that exists in the organization.
 
 The Elsasticsearch engine allows building a database in witch large
@@ -36,7 +36,7 @@ List of available Logstash plugins:
 ## System services ##
 
 
-For proper operation Energy Logserver requires starting the following system services:
+For proper operation ITRS Log Analytics requires starting the following system services:
 
 - elasticsearch.service - 
   we can run it with a command:
@@ -73,10 +73,10 @@ For proper operation Energy Logserver requires starting the following system ser
 ## First configuration steps ##
 
 ### Run the instalation ###
-To install and configure Energy Logserver on the CentOS Linux system you should:
+To install and configure ITRS Log Analytics on the CentOS Linux system you should:
 
-- copy archive Energy Logserver tar.bz2 to the hosted server;
-- extract archive Energy Logserver tar.bz2 contain application:
+- copy archive ITRS Log Analytics tar.bz2 to the hosted server;
+- extract archive ITRS Log Analytics tar.bz2 contain application:
 
 	cd /root/
 	tar xvfj archive.tar.bz2
@@ -93,11 +93,11 @@ During installation you will be ask about following tasks:
 - add firewall exception on ports 22(ssh), 5044, 5514 (Logstash), 5601 (Kibana), 9200 (Elastisearch), 9300 (ES cross-JVM);
 - installation of Java environment (Open-JDK), if you use your own Java environment - answer "N";
 - installation of Logstash application;
-- configuration of Logstash with custom Energy Logserver configuration;
-- connect to the Energy Logserver CentOS repository, which provides Python libraries, and some fonts;
-- installation of Kibana, the Energy Logserver GUI;
+- configuration of Logstash with custom ITRS Log Analytics configuration;
+- connect to the ITRS Log Analytics CentOS repository, which provides Python libraries, and some fonts;
+- installation of Kibana, the ITRS Log Analytics GUI;
 - installation of Python dependencies;
-- installation of mail components for Energy Logserver notification;
+- installation of mail components for ITRS Log Analytics notification;
 - installation of data-node of Elasticsearch;
 - configuration of Elasticsearch as Data Node;
 - configuration of Elasticsearch as Master Node.
@@ -107,7 +107,7 @@ Optionally you can:
 
 - install and configure the filebeat agent;
 - install and configure the winlogbeat agent;
-- configure Energy Logserver perf_data to integrated with the Energy Logserver Monitor;
+- configure ITRS Log Analytics perf_data to integrated with the ITRS Log Analytics Monitor;
 - configure naemonLogs to integrated with the Naemon;
 - configure integration with Active Directory and SSO servers. You can find necessary information in [12-00-00-Integration_with_AD](/12-00-00-Integration_with_AD/12-00-00-Integration_with_AD.md) and [13-00-00-Windows-SSO](/13-00-00-Windows-SSO/13-00-00-Windows-SSO.md);
 - install and configure monitoring with Marvel:
@@ -131,11 +131,11 @@ Optionally you can:
 ## First login ##
 
 
-If you log in to Energy Logserver for the first time, you must
+If you log in to ITRS Log Analytics for the first time, you must
 specify the Index to be searched. We have the option of entering the
 name of your index, indicate a specific index from a given day, or
 using the asterix (\*) to indicate all of them matching a specific
-index pattern. Therefore, to start working with Energy Logserver
+index pattern. Therefore, to start working with ITRS Log Analytics
 application, we log in to it (by default the user:
 logserver/password:logserver).
 
@@ -159,7 +159,7 @@ At any time, you can add more indexes or index patters by going to the
 main tab select „Management" and next select „Index Patterns".
 ## Index selection ##
 
-After login into Energy Logserver you will going to „Discover" tab,
+After login into ITRS Log Analytics you will going to „Discover" tab,
 where you can interactively explore your data. You have access to 
 every document in every index that matches the selected index patterns.
 
@@ -223,9 +223,9 @@ Add appropriate permission:
 
 		chown -R newuser: /etc/logstash /var/log/logstash
 
-## Custom installation the Energy Logserver ##
+## Custom installation the ITRS Log Analytics ##
 
-If you need to install Energy Logserver in non-default location, use the following steps.
+If you need to install ITRS Log Analytics in non-default location, use the following steps.
 
 1. Define the variable INSTALL_PATH if you do not want default paths like "/"
 
@@ -423,7 +423,7 @@ If you need to install Energy Logserver in non-default location, use the followi
 				firewall-cmd --reload
 ## Plugins management in the Elasticsearch ##
 
-Base installation of the Energy Logserver contains the 
+Base installation of the ITRS Log Analytics contains the 
 *elasticsearch-auth* plugin.
 You can extend the basic Elasticsearch functionality by installing the custom plugins.
 
@@ -495,7 +495,7 @@ listing currently available core plugins:
 
 ## ROOTless management
 
-To configure Energy Logserver so its services can be managed without root access follow these steps:
+To configure ITRS Log Analytics so its services can be managed without root access follow these steps:
 
 1. Create a file in `/etc/sudoers.d` (eg.: 10-logserver) with the content
 
@@ -564,7 +564,7 @@ To configure Energy Logserver so its services can be managed without root access
 
 From now on this user should be able to start/stop/restart services and modify configurations files.
 
-## Energy Logserver Elasticsearch encryption
+## ITRS Log Analytics Elasticsearch encryption
 
 ### Generating Certificates
 

@@ -4,8 +4,8 @@
 
 ### Logstash ###
 
-1. In `Energy Logservernaemon_beat.conf` set up `ELASTICSEARCH_HOST`, `ES_PORT`, `FILEBEAT_PORT`
-2. Copy `Energy Logservernaemon_beat.conf` to `/etc/logstash/conf.d`
+1. In ITRS Log Analytics `naemon_beat.conf` set up `ELASTICSEARCH_HOST`, `ES_PORT`, `FILEBEAT_PORT`
+2. Copy ITRS Log Analytics `naemon_beat.conf` to `/etc/logstash/conf.d`
 3. Based on "FILEBEAT_PORT" if firewall is running:
 ```bash
 sudo firewall-cmd --zone=public --permanent --add-port=FILEBEAT_PORT/tcp
@@ -13,16 +13,17 @@ sudo firewall-cmd --reload
 ```
 4. Based on amount of data that elasticsearch will receive you can also choose whether you want index creation to be based on moths or days:
 ```json
-index => "Energy Logserver-naemon-%{+YYYY.MM}"
+index => "ITRS Log Analytics-naemon-%{+YYYY.MM}"
 or
-index => "Energy Logserver-naemon-%{+YYYY.MM.dd}"
+index => "ITRS Log Analytics-naemon-%{+YYYY.MM.dd}"
 ```
-5. Copy `naemon` file to /etc/logstash/patterns and make sure it is readable by logstash process
+5. Copy `naemon` file to `/etc/logstash/patterns` and make sure it is readable by logstash process
 6. Restart *logstash* configuration e.g.:
 ```bash
 sudo systemct restart logstash
 ```
 ### Elasticsearch ###
+
 1. Connect to Elasticsearch node via SSH and Install index pattern for naemon logs. Note that if you have a default pattern covering *settings* section you should delete/modify that in naemon_template.sh:
 ```json
   "settings": {
@@ -33,9 +34,9 @@ sudo systemct restart logstash
 2. Install template by running:
 `./naemon_template.sh`
 
-### Energy Logserver Monitor ###
- 
-1. On Energy Logserver Monitor host install filebeat (for instance via rpm `https://www.elastic.co/downloads/beats/filebeat`)
+### ITRS Log Analytics Monitor ###
+
+1. On ITRS Log Analytics Monitor host install filebeat (for instance via rpm `https://www.elastic.co/downloads/beats/filebeat`)
 1. In `/etc/filebeat/filebeat.yml` add:
 
 		#=========================== Filebeat inputs =============================
@@ -75,17 +76,17 @@ At this moment there should be a new index on the Elasticsearch node:
 Example output:
 
 		health status index                 uuid                   pri rep docs.count docs.deleted store.size pri.store.size
-		green  open   Energy Logserver-naemon-2018.11    gO8XRsHiTNm63nI_RVCy8w   1   0      23176            0      8.3mb          8.3mb
+		green  open   ITRS Log Analytics-naemon-2018.11    gO8XRsHiTNm63nI_RVCy8w   1   0      23176            0      8.3mb          8.3mb
 
 If the index has been created, in order to browse and visualise the data, "index pattern" needs to be added in Kibana.
 
 ## OP5 - Performance data ##
 
-Below instruction requires that between Energy Logserver node and Elasticsearch node is working Logstash instance.
+Below instruction requires that between ITRS Log Analytics node and Elasticsearch node is working Logstash instance.
 
 ### Elasticsearch ###
-1.	First, settings section in *Energy Logservertemplate.sh* should be adjusted, either:
-	- there is a default template present on Elasticsearch that already covers shards and replicas then settings sections should be removed from the *Energy Logservertemplate.sh* before executing
+1.	First, settings section in *ITRS Log Analyticstemplate.sh* should be adjusted, either:
+	- there is a default template present on Elasticsearch that already covers shards and replicas then settings sections should be removed from the *ITRS Log Analyticstemplate.sh* before executing
 	- there is no default template - shards and replicas should be adjusted for you environment (keep in mind replicas can be added later, while changing shards count on existing index requires 
 	reindexing it)
 
@@ -94,31 +95,31 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
 			  "number_of_replicas": 0
 			}
 
-1. In URL *Energy Logserverperfdata* is a name for the template - later it can be search for or modify with it.
-1. The "*template*" is an index pattern. New indices matching it will have the settings and mapping applied automatically (change it if you index name for *Energy Logserver perfdata* is different).
+1. In URL *ITRS Log Analyticsperfdata* is a name for the template - later it can be search for or modify with it.
+1. The "*template*" is an index pattern. New indices matching it will have the settings and mapping applied automatically (change it if you index name for *ITRS Log Analytics perfdata* is different).
 1. Mapping name should match documents type:
 
 		"mappings": {
-		  "Energy Logserverperflogs"
+		  "ITRS Log Analyticsperflogs"
 
-1. Running Energy Logservertemplate.sh will create a template (not index) for Energy Logserver perf data documents.
+1. Running ITRS Log Analyticstemplate.sh will create a template (not index) for ITRS Log Analytics perf data documents.
 
 ### Logstash ###
 
-1.	The *Energy Logserverperflogs.conf* contains example of *input/filter/output* configuration. It has to be copied to */etc/logstash/conf.d/*. Make sure that the *logstash* has permissions to read the configuration files:
+1.	The *ITRS Log Analyticsperflogs.conf* contains example of *input/filter/output* configuration. It has to be copied to */etc/logstash/conf.d/*. Make sure that the *logstash* has permissions to read the configuration files:
 	
-		chmod 664 /etc/logstash/conf.d/Energy Logserverperflogs.conf
+		chmod 664 /etc/logstash/conf.d/ITRS Log Analyticsperflogs.conf
 
 1. In the input section comment/uncomment *“beats”* or *“tcp”* depending on preference (beats if *Filebeat* will be used and tcp if *NetCat*). The port and the type has to be adjusted as well:
 
 		port => PORT_NUMBER
-		type => "Energy Logserverperflogs"
+		type => "ITRS Log Analyticsperflogs"
 
 1. In a filter section type has to be changed if needed to match the input section and Elasticsearch mapping.
 1. In an output section type should match with the rest of a *config*. host should point to your elasticsearch node. index name should correspond with what has been set in elasticsearch template to allow mapping application. The date for index rotation in its name is recommended and depending on the amount of data expecting to be transferred should be set to daily (+YYYY.MM.dd) or monthly (+YYYY.MM) rotation:
 
 		hosts => ["127.0.0.1:9200"]
-		index => "Energy Logserver-perflogs-%{+YYYY.MM.dd}"
+		index => "ITRS Log Analytics-perflogs-%{+YYYY.MM.dd}"
 
 1. Port has to be opened on a firewall:
 
@@ -133,7 +134,7 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
 
 		sudo kill -1 LOGSTASH_PID
 
-### Energy Logserver Monitor ###
+### ITRS Log Analytics Monitor ###
 
 1.	You have to decide wether FileBeat or NetCat will be used. In case of Filebeat - skip to the second step. Otherwise:
 	- Comment line:
@@ -155,9 +156,9 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
 			92 my $logstashIP = "LOGSTASH_IP";
 			93 my $logstashPORT = "LOGSTASH_PORT";
 
-1. In case of running single Energy Logserver node, there is no problem with the setup. In case of a peered environment *$do_on_host* variable has to be set up and the script *process-service-perfdata-log.pl/process-host-perfdata-log.pl* has to be propagated on all of Energy Logserver nodes:
+1. In case of running single ITRS Log Analytics node, there is no problem with the setup. In case of a peered environment *$do_on_host* variable has to be set up and the script *process-service-perfdata-log.pl/process-host-perfdata-log.pl* has to be propagated on all of ITRS Log Analytics nodes:
 
-		16 $do_on_host = "EXAMPLE_HOSTNAME"; # Energy Logserver node name to run the script on
+		16 $do_on_host = "EXAMPLE_HOSTNAME"; # ITRS Log Analytics node name to run the script on
 		17 $hostName = hostname; # will read hostname of a node running the script
 
 1. Example of command definition (*/opt/monitor/etc/checkcommands.cfg*) if scripts have been copied to */opt/plugins/custom/*:
@@ -174,7 +175,7 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
 		    }
 
 1. In */opt/monitor/etc/naemon.cfg service_perfdata_file_processing_command* and *host_perfdata_file_processing_command* has to be changed to run those custom scripts:
- 
+
 		service_perfdata_file_processing_command=process-service-perfdata-log
 		host_perfdata_file_processing_command=process-host-perfdata-log
 
@@ -193,7 +194,7 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
 		    - /opt/monitor/var/service_performance.log
 		    - /opt/monitor/var/host_performance.log
 
-			tags: ["Energy Logserverperflogs"]
+			tags: ["ITRS Log Analyticsperflogs"]
 
 
 		output.logstash:
@@ -203,33 +204,33 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
 
 
 	- Restart FileBeat service:
-
+	
 			sudo systemctl restart filebeat # CentOS/RHEL 7.x
 			sudo service filebeat restart # CentOS/RHEL 6.x
 
 
 ### Kibana ###
 
-At this moment there should be new index on the Elasticsearch node with performance data documents from Energy Logserver Monitor. 
+At this moment there should be new index on the Elasticsearch node with performance data documents from ITRS Log Analytics Monitor. 
 Login to an Elasticsearch node and run: `curl -XGET '127.0.0.1:9200/_cat/indices?v'` Example output:
 
 	health status index                      pri rep docs.count docs.deleted store.size pri.store.size
 	green  open   auth                       5   0          7         6230      1.8mb          1.8mb
-	green  open   Energy Logserver-perflogs-2018.09.14    5   0      72109            0     24.7mb         24.7mb
+	green  open   ITRS Log Analytics-perflogs-2018.09.14    5   0      72109            0     24.7mb         24.7mb
 
 After a while, if there is no new index make sure that: 
 
-- Naemon is runnig on Energy Logserver node
+- Naemon is runnig on ITRS Log Analytics node
 - Logstash service is running and there are no errors in: */var/log/logstash/logstash-plain.log* 
 - Elasticsearch service is running an there are no errors in: */var/log/elasticsearch/elasticsearch.log*
 
 If the index has been created, in order to browse and visualize the data “*index pattern*” needs to be added to Kibana. 
 
-1. After logging in to Kibana GUI go to *Settings* tab and add *Energy Logserver-perflogs-** pattern. Chose *@timestamp* time field and click *Create*. 
+1. After logging in to Kibana GUI go to *Settings* tab and add *ITRS Log Analytics-perflogs-** pattern. Chose *@timestamp* time field and click *Create*. 
 1. Performance data logs should be now accessible from Kibana GUI Discovery tab ready to be visualize.
 
 ## The Grafana instalation ##
-	
+
 1. To install the Grafana application you should:
 	- add necessary repository to operating system:
 
@@ -247,7 +248,7 @@ If the index has been created, in order to browse and visualize the data “*ind
 
 
 	- install the Grafana with following commands:
-
+	
 			[root@logserver-6 ~]# yum search grafana
 			Loaded plugins: fastestmirror
 			Loading mirror speeds from cached hostfile
@@ -261,9 +262,9 @@ If the index has been created, in order to browse and visualize the data “*ind
 			  Name and summary matches only, use "search all" for everything.
 			
 			[root@logserver-6 ~]# yum install grafana
-
+	
 	- to run application use following commands:
-
+	
 			[root@logserver-6 ~]# systemctl enable grafana-server
 			Created symlink from /etc/systemd/system/multi-user.target.wants/grafana-server.service to /usr/lib/systemd/system/grafana-server.service.
 			[root@logserver-6 ~]#
@@ -303,7 +304,7 @@ If the index has been created, in order to browse and visualize the data “*ind
 	- Login to Grafana user interface using web browser: *http://ip:3000*
 
 ![](/media/media/image112.png)
- 
+
 	- use login and password that you set in the config file.
 
 
@@ -341,7 +342,7 @@ Before uploading index-pattern or dashboard you have to authorize yourself:
 
 1.	After that you can upload it as any other template (Access Es node with SSH):
 
-		curl -XPUT "localhost:9200/_template/Energy Logserverperfdata" -H'Content-Type: application/json' -d@beats_template.json
+		curl -XPUT "localhost:9200/_template/ITRS Log Analyticsperfdata" -H'Content-Type: application/json' -d@beats_template.json
 
 ## Wazuh integration ##
 
@@ -394,7 +395,7 @@ However, if it is to be run with encryption, you also need to change `proxy_pass
 		bash
 		cp oauth2_proxy /usr/share/oauth2_proxy/
 		cp oauth2_proxy.cfg /etc/oauth2_proxy/
-		
+	
 1. Set directives according to OAuth configuration in Google Cloud project
 
 		cfg
@@ -520,7 +521,7 @@ In the browser enter the address pointing to the server with the Logserver insta
 			hosts = [
 			  {
 			    host = "http://localhost:9200"
-			    name = "energy-logserver"
+			    name = "logserver"
 			    auth = {
 			      username = "username"
 			      password = "password"
@@ -541,7 +542,7 @@ In the browser enter the address pointing to the server with the Logserver insta
 
 
 	- SSL access to cerebro
-
+	
 			http = {
 			  port = "disabled"
 			}

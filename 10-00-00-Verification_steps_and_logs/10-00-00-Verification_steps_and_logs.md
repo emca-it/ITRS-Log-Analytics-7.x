@@ -129,11 +129,11 @@ output:
 	      "non_heap_max_in_bytes" : 0                          
 	    },                                                     
 	    "gc_collectors" : [ "ParNew", "ConcurrentMarkSweep" ]  
-	  }                                                        # Verificatoin of Energy Logserver GUI service #
+	  }                                                        # Verificatoin of ITRS Log Analytics GUI service #
 
-To verify of Energy Logserver GUI service you can use following command:
+To verify of ITRS Log Analytics GUI service you can use following command:
 
-- control the Energy Logserver GUI service via **systemd**:
+- control the ITRS Log Analytics GUI service via **systemd**:
 
 		# systemctl status kibana
 
@@ -146,7 +146,7 @@ output:
 		   CGroup: /system.slice/kibana.service                                                                                           
 		           └─1330 /usr/share/kibana/bin/../node/bin/node --no-warnings /usr/share/kibana/bin/../src/cli -c /etc/kibana/kibana.yml 
 
-- control the Energy Logserver GUI via **port tcp/http**:
+- control the ITRS Log Analytics GUI via **port tcp/http**:
 
 		# curl -XGET '127.0.0.1:5601/'
 
@@ -161,6 +161,6 @@ output:
 		    window.location = defaultRoute;
 		  }</script>
 
-- Control the Energy Logserver GUI via **log file**:
+- Control the ITRS Log Analytics GUI via **log file**:
 
 		# tail -f /var/log/messages

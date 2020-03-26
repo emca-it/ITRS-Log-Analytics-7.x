@@ -81,7 +81,7 @@
 			hosts = [
 			  {
 			    host = "https://192.168.3.11:9200"
-			    name = "energy-logserver"
+			    name = "itrs-log-analytics"
 			    auth = {
 			      username = "logserver"
 			      password = "logserver"

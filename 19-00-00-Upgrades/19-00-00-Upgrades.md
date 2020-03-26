@@ -4,15 +4,15 @@
 
 The update includes packages:
 
-- Energy-logserver-data-node
-- Energy-logserver-client-node
+- itrs-log-analytics-data-node
+- itrs-log-analytics-client-node
 
-### Upgrade Energy Logserver Data Node
+### Upgrade ITRS Log Analytics Data Node
 
 1. Upload Package
 
 ```bash
-scp ./energy-logserver-data-node-7.0.1-1.el7.x86_64.rpm root@hostname:~/
+scp ./itrs-log-analytics-data-node-7.0.1-1.el7.x86_64.rpm root@hostname:~/
 ```
 
 2. Check Cluster Status
@@ -45,22 +45,22 @@ curl -s -u $CREDENTIAL localhost:9200/_cluster/health?pretty
    }
 ```
 
-3. Upgrade Energy Logserver Package
+3. Upgrade ITRS Log Analytics Package
 
 ```bash
-yum update ./energy-logserver-data-node-7.0.1-1.el7.x86_64.rpm
+yum update ./itrs-log-analytics-data-node-7.0.1-1.el7.x86_64.rpm
 ```
 
 ​	Output:
 
 ```bash
 Loaded plugins: fastestmirror
-Examining ./energy-logserver-data-node-7.0.1-1.el7.x86_64.rpm: energy-logserver-data-node-7.0.1-1.el7.x86_64
-Marking ./energy-logserver-data-node-7.0.1-1.el7.x86_64.rpm as an update to energy-logserver-data-node-6.1.8-1.x86_64
+Examining ./itrs-log-analytics-data-node-7.0.1-1.el7.x86_64.rpm: itrs-log-analytics-data-node-7.0.1-1.el7.x86_64
+Marking ./itrs-log-analytics-data-node-7.0.1-1.el7.x86_64.rpm as an update to itrs-log-analytics-data-node-6.1.8-1.x86_64
 Resolving Dependencies
 --> Running transaction check
----> Package energy-logserver-data-node.x86_64 0:6.1.8-1 will be updated
----> Package energy-logserver-data-node.x86_64 0:7.0.1-1.el7 will be an update
+---> Package itrs-log-analytics-data-node.x86_64 0:6.1.8-1 will be updated
+---> Package itrs-log-analytics-data-node.x86_64 0:7.0.1-1.el7 will be an update
 --> Finished Dependency Resolution
 
 Dependencies Resolved
@@ -68,7 +68,7 @@ Dependencies Resolved
  Package                                        Arch                       Version                            Repository                                                          Size
 =======================================================================================================================================================================================
 Updating:
- energy-logserver-data-node                     x86_64                     7.0.1-1.el7                        /energy-logserver-data-node-7.0.1-1.el7.x86_64                     117 M
+ itrs-log-analytics-data-node                     x86_64                     7.0.1-1.el7                        /itrs-log-analytics-data-node-7.0.1-1.el7.x86_64                     117 M
 
 Transaction Summary
 =======================================================================================================================================================================================
@@ -81,15 +81,15 @@ Running transaction check
 Running transaction test
 Transaction test succeeded
 Running transaction
-  Updating   : energy-logserver-data-node-7.0.1-1.el7.x86_64                                                                                                                       1/2
+  Updating   : itrs-log-analytics-data-node-7.0.1-1.el7.x86_64                                                                                                                       1/2
 Removed symlink /etc/systemd/system/multi-user.target.wants/elasticsearch.service.
 Created symlink from /etc/systemd/system/multi-user.target.wants/elasticsearch.service to /usr/lib/systemd/system/elasticsearch.service.
-  Cleanup    : energy-logserver-data-node-6.1.8-1.x86_64                                                                                                                           2/2
-  Verifying  : energy-logserver-data-node-7.0.1-1.el7.x86_64                                                                                                                       1/2
-  Verifying  : energy-logserver-data-node-6.1.8-1.x86_64                                                                                                                           2/2
+  Cleanup    : itrs-log-analytics-data-node-6.1.8-1.x86_64                                                                                                                           2/2
+  Verifying  : itrs-log-analytics-data-node-7.0.1-1.el7.x86_64                                                                                                                       1/2
+  Verifying  : itrs-log-analytics-data-node-6.1.8-1.x86_64                                                                                                                           2/2
 
 Updated:
-  energy-logserver-data-node.x86_64 0:7.0.1-1.el7
+  itrs-log-analytics-data-node.x86_64 0:7.0.1-1.el7
 
 Complete!
 ```
@@ -197,19 +197,19 @@ curl -s -u $CREDENTIAL localhost:9200
 
 If everything went correctly, we should see 100% allocated shards in cluster health. However, while connection on port 9200/TCP we can observe a new version of Elasticsearch.
 
-### Upgrade Energy Logserver client Node
+### Upgrade ITRS Log Analytics client Node
 
 1. Upload packages
 
 - Upload new rpm by scp/ftp:
 
 ```bash
-scp ./energy-logserver-client-node-7.0.1-1.el7.x86_64.rpm root@hostname:~/
+scp ./itrs-log-analytics-client-node-7.0.1-1.el7.x86_64.rpm root@hostname:~/
 ```
 
 - Backup report logo file.
 
-2. Uninstall old version Energy Logserver GUI
+2. Uninstall old version ITRS Log Analytics GUI
 
 - Remove old package:
 
@@ -218,11 +218,11 @@ systemctl stop kibana alert
 ```
 
 ```bash
-yum remove energy-logserver-client-node
+yum remove itrs-log-analytics-client-node
 Loaded plugins: fastestmirror
 Resolving Dependencies
 --> Running transaction check
----> Package energy-logserver-client-node.x86_64 0:6.1.8-1 will be erased
+---> Package itrs-log-analytics-client-node.x86_64 0:6.1.8-1 will be erased
 --> Finished Dependency Resolution
 
 Dependencies Resolved
@@ -231,7 +231,7 @@ Dependencies Resolved
  Package                                           Arch                        Version                        Repository                                                          Size
 =======================================================================================================================================================================================
 Removing:
- energy-logserver-client-node                      x86_64                      6.1.8-1                        @/energy-logserver-client-node-6.1.8-1.x86_64                      802 M
+ itrs-log-analytics-client-node                      x86_64                      6.1.8-1                        @/itrs-log-analytics-client-node-6.1.8-1.x86_64                      802 M
 
 Transaction Summary
 =======================================================================================================================================================================================
@@ -244,13 +244,13 @@ Running transaction check
 Running transaction test
 Transaction test succeeded
 Running transaction
-  Erasing    : energy-logserver-client-node-6.1.8-1.x86_64                                                                                                                         1/1
+  Erasing    : itrs-log-analytics-client-node-6.1.8-1.x86_64                                                                                                                         1/1
 warning: file /usr/share/kibana/plugins/node_modules.tar: remove failed: No such file or directory
 warning: /etc/kibana/kibana.yml saved as /etc/kibana/kibana.yml.rpmsave
-  Verifying  : energy-logserver-client-node-6.1.8-1.x86_64                                                                                                                         1/1
+  Verifying  : itrs-log-analytics-client-node-6.1.8-1.x86_64                                                                                                                         1/1
 
 Removed:
-  energy-logserver-client-node.x86_64 0:6.1.8-1
+  itrs-log-analytics-client-node.x86_64 0:6.1.8-1
 
 Complete!
 ```
@@ -260,13 +260,13 @@ Complete!
 - Install new package:
 
   ```bash
-  yum install ./energy-logserver-client-node-7.0.1-1.el7.x86_64.rpm
+  yum install ./itrs-log-analytics-client-node-7.0.1-1.el7.x86_64.rpm
   Loaded plugins: fastestmirror
-  Examining ./energy-logserver-client-node-7.0.1-1.el7.x86_64.rpm: energy-logserver-client-node-7.0.1-1.el7.x86_64
-  Marking ./energy-logserver-client-node-7.0.1-1.el7.x86_64.rpm to be installed
+  Examining ./itrs-log-analytics-client-node-7.0.1-1.el7.x86_64.rpm: itrs-log-analytics-client-node-7.0.1-1.el7.x86_64
+  Marking ./itrs-log-analytics-client-node-7.0.1-1.el7.x86_64.rpm to be installed
   Resolving Dependencies
   --> Running transaction check
-  ---> Package energy-logserver-client-node.x86_64 0:7.0.1-1.el7 will be installed
+  ---> Package itrs-log-analytics-client-node.x86_64 0:7.0.1-1.el7 will be installed
   --> Finished Dependency Resolution
   
   Dependencies Resolved
@@ -275,7 +275,7 @@ Complete!
    Package                                         Arch                      Version                           Repository                                                           Size
   =======================================================================================================================================================================================
   Installing:
-   energy-logserver-client-node                    x86_64                    7.0.1-1.el7                       /energy-logserver-client-node-7.0.1-1.el7.x86_64                    1.2 G
+   itrs-log-analytics-client-node                    x86_64                    7.0.1-1.el7                       /itrs-log-analytics-client-node-7.0.1-1.el7.x86_64                    1.2 G
   
   Transaction Summary
   =======================================================================================================================================================================================
@@ -289,7 +289,7 @@ Complete!
   Running transaction test
   Transaction test succeeded
   Running transaction
-    Installing : energy-logserver-client-node-7.0.1-1.el7.x86_64                                                                                                                     1/1
+    Installing : itrs-log-analytics-client-node-7.0.1-1.el7.x86_64                                                                                                                     1/1
   Generating a 2048 bit RSA private key
   ..............................................................................................+++
   ...........................................................................................................+++
@@ -301,15 +301,15 @@ Complete!
   Created symlink from /etc/systemd/system/multi-user.target.wants/kibana.service to /usr/lib/systemd/system/kibana.service.
   Removed symlink /etc/systemd/system/multi-user.target.wants/cerebro.service.
   Created symlink from /etc/systemd/system/multi-user.target.wants/cerebro.service to /usr/lib/systemd/system/cerebro.service.
-    Verifying  : energy-logserver-client-node-7.0.1-1.el7.x86_64                                                                                                                     1/1
+    Verifying  : itrs-log-analytics-client-node-7.0.1-1.el7.x86_64                                                                                                                     1/1
   
   Installed:
-    energy-logserver-client-node.x86_64 0:7.0.1-1.el7
+    itrs-log-analytics-client-node.x86_64 0:7.0.1-1.el7
   
   Complete!
   ```
 
-4. Start Energy Logserver GUI
+4. Start ITRS Log Analytics GUI
 
    Add service:
 

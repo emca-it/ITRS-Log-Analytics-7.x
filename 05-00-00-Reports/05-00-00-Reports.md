@@ -1,7 +1,7 @@
 # Reports #
 
 
-Energy Logserver contains a module for creating reports that can be
+ITRS Log Analytics contains a module for creating reports that can be
 run cyclically and contain only interesting data, e.g. a weekly sales
 report.
 

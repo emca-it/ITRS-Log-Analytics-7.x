@@ -1,2 +1,2 @@
-# Energy Logserver
-Energy Logserver User Guide
+# ITRS Log Analytics
+ITRS Log Analytics User Guide

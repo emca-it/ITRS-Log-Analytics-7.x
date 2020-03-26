@@ -2,7 +2,7 @@
 
 ## Skimmer ##
 
-Energy Logserver uses a monitoring module called Skimmer to monitor the performance of its hosts. Metrics and conditions of services are retrieved using the API.
+ITRS Log Analytics uses a monitoring module called Skimmer to monitor the performance of its hosts. Metrics and conditions of services are retrieved using the API.
 
 The services that are supported are:
 

@@ -23,7 +23,7 @@ The update includes packages:
     curl -s -u $CREDENTIAL localhost:9200/_cluster/health?pretty
     ```
 
-        Output:
+      Output:
 
     ```bash
     {
@@ -51,7 +51,7 @@ The update includes packages:
     yum update ./itrs-log-analytics-data-node-7.0.1-1.el7.x86_64.rpm
     ```
 
-        Output:
+      Output:
 
     ```bash
     Loaded plugins: fastestmirror
@@ -311,10 +311,13 @@ The update includes packages:
 1. Start ITRS Log Analytics GUI
     
     Add service:
-       - Kibana
-       - Cerebro
-       - Alert
-    to autostart, add port ( 5602/TCP ) for Cerebro. Run them and check status:
+    - Kibana
+    - Cerebro
+    - Alert
+    
+    to autostart and add port ( 5602/TCP ) for Cerebro. 
+    Run them and check status:
+    
     ```bash
     firewall-cmd –permanent –add-port 5602/tcp
     firewall-cmd –reload

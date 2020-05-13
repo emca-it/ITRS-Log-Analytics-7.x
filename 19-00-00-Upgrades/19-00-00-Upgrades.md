@@ -152,54 +152,59 @@ The update includes packages:
     Mar 18 16:50:33 migration-01 elasticsearch[17195]: SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
     ```
 
-
 1. Check cluster/indices status and Elasticsearch version
 
-    Invoke curl command to check the status of Elasticsearch:
+   Invoke curl command to check the status of Elasticsearch:
 
-    ```bash
-    curl -s -u $CREDENTIAL localhost:9200/_cluster/health?pretty
-    {
-      "cluster_name" : "elasticsearch",
-      "status" : "green",
-      "timed_out" : false,
-      "number_of_nodes" : 1,
-      "number_of_data_nodes" : 1,
-      "active_primary_shards" : 25,
-      "active_shards" : 25,
-      "relocating_shards" : 0,
-      "initializing_shards" : 0,
-      "unassigned_shards" : 0,
-      "delayed_unassigned_shards" : 0,
-      "number_of_pending_tasks" : 0,
-      "number_of_in_flight_fetch" : 0,
-      "task_max_waiting_in_queue_millis" : 0,
-      "active_shards_percent_as_number" : 100.0
-    }
-    ```
+```bash
+curl -s -u $CREDENTIAL localhost:9200/_cluster/health?pretty
+{
+  "cluster_name" : "elasticsearch",
+  "status" : "green",
+  "timed_out" : false,
+  "number_of_nodes" : 1,
+  "number_of_data_nodes" : 1,
+  "active_primary_shards" : 25,
+  "active_shards" : 25,
+  "relocating_shards" : 0,
+  "initializing_shards" : 0,
+  "unassigned_shards" : 0,
+  "delayed_unassigned_shards" : 0,
+  "number_of_pending_tasks" : 0,
+  "number_of_in_flight_fetch" : 0,
+  "task_max_waiting_in_queue_millis" : 0,
+  "active_shards_percent_as_number" : 100.0
+}
+```
 
-    ```bash
-    curl -s -u $CREDENTIAL localhost:9200
-    {
-      "name" : "node-1",
-      "cluster_name" : "elasticsearch",
-      "cluster_uuid" : "igrASEDRRamyQgy-zJRSfg",
-      "version" : {
-        "number" : "7.3.2",
-        "build_flavor" : "oss",
-        "build_type" : "rpm",
-        "build_hash" : "1c1faf1",
-        "build_date" : "2019-09-06T14:40:30.409026Z",
-        "build_snapshot" : false,
-        "lucene_version" : "8.1.0",
-        "minimum_wire_compatibility_version" : "6.8.0",
-        "minimum_index_compatibility_version" : "6.0.0-beta1"
-      },
-      "tagline" : "You Know, for Search"
-    }
-    ```
+```bash
+curl -s -u $CREDENTIAL localhost:9200
+{
+  "name" : "node-1",
+  "cluster_name" : "elasticsearch",
+  "cluster_uuid" : "igrASEDRRamyQgy-zJRSfg",
+  "version" : {
+    "number" : "7.3.2",
+    "build_flavor" : "oss",
+    "build_type" : "rpm",
+    "build_hash" : "1c1faf1",
+    "build_date" : "2019-09-06T14:40:30.409026Z",
+    "build_snapshot" : false,
+    "lucene_version" : "8.1.0",
+    "minimum_wire_compatibility_version" : "6.8.0",
+    "minimum_index_compatibility_version" : "6.0.0-beta1"
+  },
+  "tagline" : "You Know, for Search"
+}
+```
 
-    If everything went correctly, we should see 100% allocated shards in cluster health. However, while connection on port 9200/TCP we  can observe a new version of Elasticsearch.
+1. Install new version of default base template
+
+```bash
+curl -k -XPUT -H 'Content-Type: application/json' -u logserver:logserver 'http://127.0.0.1:9200/_template/default-base-template-0' -d@/usr/share/elasticsearch/default-base-template-0.json
+```
+
+If everything went correctly, we should see 100% allocated shards in cluster health. However, while connection on port 9200/TCP we  can observe a new version of Elasticsearch.
 
 ### Upgrade ITRS Log Analytics client Node
 

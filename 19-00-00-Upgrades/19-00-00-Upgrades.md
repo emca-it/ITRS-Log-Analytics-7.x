@@ -7,6 +7,18 @@ curl -u $USER:$PASSWORD -X GET http://localhost:9200/license
 
 ## Upgrade from 6.x
 
+Before upgrading to ITRS Log Analytics 6.x install OpenJDK / Oracle JDK  version 11:
+
+```bash
+yum -y -q install java-11-openjdk-headless.x86_64
+```
+
+And select default command for OpenJDK /Oracle JDK:
+
+```bash
+alternatives --config java
+```
+
 The update includes packages:
 
 - itrs-log-analytics-data-node
@@ -156,47 +168,47 @@ The update includes packages:
 
    Invoke curl command to check the status of Elasticsearch:
 
-```bash
-curl -s -u $CREDENTIAL localhost:9200/_cluster/health?pretty
-{
-  "cluster_name" : "elasticsearch",
-  "status" : "green",
-  "timed_out" : false,
-  "number_of_nodes" : 1,
-  "number_of_data_nodes" : 1,
-  "active_primary_shards" : 25,
-  "active_shards" : 25,
-  "relocating_shards" : 0,
-  "initializing_shards" : 0,
-  "unassigned_shards" : 0,
-  "delayed_unassigned_shards" : 0,
-  "number_of_pending_tasks" : 0,
-  "number_of_in_flight_fetch" : 0,
-  "task_max_waiting_in_queue_millis" : 0,
-  "active_shards_percent_as_number" : 100.0
-}
-```
+    ```bash
+    curl -s -u $CREDENTIAL localhost:9200/_cluster/health?pretty
+    {
+      "cluster_name" : "elasticsearch",
+      "status" : "green",
+      "timed_out" : false,
+      "number_of_nodes" : 1,
+      "number_of_data_nodes" : 1,
+      "active_primary_shards" : 25,
+      "active_shards" : 25,
+      "relocating_shards" : 0,
+      "initializing_shards" : 0,
+      "unassigned_shards" : 0,
+      "delayed_unassigned_shards" : 0,
+      "number_of_pending_tasks" : 0,
+      "number_of_in_flight_fetch" : 0,
+      "task_max_waiting_in_queue_millis" : 0,
+      "active_shards_percent_as_number" : 100.0
+    }
+    ```
 
-```bash
-curl -s -u $CREDENTIAL localhost:9200
-{
-  "name" : "node-1",
-  "cluster_name" : "elasticsearch",
-  "cluster_uuid" : "igrASEDRRamyQgy-zJRSfg",
-  "version" : {
-    "number" : "7.3.2",
-    "build_flavor" : "oss",
-    "build_type" : "rpm",
-    "build_hash" : "1c1faf1",
-    "build_date" : "2019-09-06T14:40:30.409026Z",
-    "build_snapshot" : false,
-    "lucene_version" : "8.1.0",
-    "minimum_wire_compatibility_version" : "6.8.0",
-    "minimum_index_compatibility_version" : "6.0.0-beta1"
-  },
-  "tagline" : "You Know, for Search"
-}
-```
+    ```bash
+    curl -s -u $CREDENTIAL localhost:9200
+    {
+      "name" : "node-1",
+      "cluster_name" : "elasticsearch",
+      "cluster_uuid" : "igrASEDRRamyQgy-zJRSfg",
+      "version" : {
+        "number" : "7.3.2",
+        "build_flavor" : "oss",
+        "build_type" : "rpm",
+        "build_hash" : "1c1faf1",
+        "build_date" : "2019-09-06T14:40:30.409026Z",
+        "build_snapshot" : false,
+        "lucene_version" : "8.1.0",
+        "minimum_wire_compatibility_version" : "6.8.0",
+        "minimum_index_compatibility_version" : "6.0.0-beta1"
+      },
+      "tagline" : "You Know, for Search"
+    }
+    ```
 
 1. Install new version of default base template
 
@@ -206,7 +218,7 @@ curl -k -XPUT -H 'Content-Type: application/json' -u logserver:logserver 'http:/
 
 If everything went correctly, we should see 100% allocated shards in cluster health. However, while connection on port 9200/TCP we  can observe a new version of Elasticsearch.
 
-### Upgrade ITRS Log Analytics client Node
+### Upgrade ITRS Log Analytics Client Node
 
 1. Upload packages
 
@@ -334,14 +346,14 @@ If everything went correctly, we should see 100% allocated shards in cluster hea
     ```
 
 
-    ```bash
+```bash
     systemctl enable kibana cerebro alert
     Created symlink from /etc/systemd/system/multi-user.target.wants/kibana.service to /usr/lib/systemd/system/kibana.service.
     Created symlink from /etc/systemd/system/multi-user.target.wants/cerebro.service to /usr/lib/systemd/system/cerebro.service.
     Created symlink from /etc/systemd/system/multi-user.target.wants/alert.service to /usr/lib/systemd/system/alert.service.
-    ```
-    
-    ```bash
+```
+
+```bash
     systemctl start kibana cerebro alert
     systemctl status kibana cerebro alert
     ● kibana.service - Kibana
@@ -370,7 +382,7 @@ If everything went correctly, we should see 100% allocated shards in cluster hea
                └─12401 /opt/alert/bin/python /opt/alert/bin/elastalert
     
     Mar 19 14:46:52 migration-01 systemd[1]: Started Alert.
-    ```
+```
 ## Changing OpenJDK version
 
 ### Logstash

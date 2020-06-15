@@ -218,7 +218,7 @@ Every user by default at present get the admin role.
 
 # Integration with OpenLDAP (version 7.0.2 and newer)
 
-To use Open LDAP authorization, install or update ITRS Log Analytics 7.0.2.
+To use OpenLDAP authorization, install or update ITRS Log Analytics 7.0.2.
 
 ## Configuration
 

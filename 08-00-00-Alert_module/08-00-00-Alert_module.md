@@ -436,7 +436,7 @@ and second:
 Name:           MispThreatList
 Cron pattern:   0 1 * * *
 Command:        lists/misp_threat_lists.sh
-Category:       logstash
+Category:       l\logstash
 ```
 
 After a couple of minutes check for blacklists index:

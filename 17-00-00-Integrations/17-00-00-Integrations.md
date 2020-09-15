@@ -7,76 +7,65 @@
 1. In ITRS Log Analytics `naemon_beat.conf` set up `ELASTICSEARCH_HOST`, `ES_PORT`, `FILEBEAT_PORT`
 2. Copy ITRS Log Analytics `naemon_beat.conf` to `/etc/logstash/conf.d`
 3. Based on "FILEBEAT_PORT" if firewall is running:
-
 ```bash
 sudo firewall-cmd --zone=public --permanent --add-port=FILEBEAT_PORT/tcp
 sudo firewall-cmd --reload
 ```
-
 4. Based on amount of data that elasticsearch will receive you can also choose whether you want index creation to be based on moths or days:
-
 ```json
 index => "ITRS Log Analytics-naemon-%{+YYYY.MM}"
 or
 index => "ITRS Log Analytics-naemon-%{+YYYY.MM.dd}"
 ```
-
 5. Copy `naemon` file to `/etc/logstash/patterns` and make sure it is readable by logstash process
 6. Restart *logstash* configuration e.g.:
-
 ```bash
 sudo systemct restart logstash
 ```
-
 ### Elasticsearch ###
 
 1. Connect to Elasticsearch node via SSH and Install index pattern for naemon logs. Note that if you have a default pattern covering *settings* section you should delete/modify that in naemon_template.sh:
-
 ```json
   "settings": {
     "number_of_shards": 5,
     "auto_expand_replicas": "0-1"
   },
 ```
-
 2. Install template by running:
-   `./naemon_template.sh`
+`./naemon_template.sh`
 
 ### ITRS Log Analytics Monitor ###
 
 1. On ITRS Log Analytics Monitor host install filebeat (for instance via rpm `https://www.elastic.co/downloads/beats/filebeat`)
-
 1. In `/etc/filebeat/filebeat.yml` add:
 
-   #=========================== Filebeat inputs =============================
-   	filebeat.config.inputs:
-   	  enabled: true
-   	  path: configs/*.yml
+		#=========================== Filebeat inputs =============================
+		filebeat.config.inputs:
+		  enabled: true
+		  path: configs/*.yml
 
 1. You also will have to configure the output section in `filebeat.yml`. You should have one logstash output:
 
-   #----------------------------- Logstash output --------------------------------
-   	output.logstash:
-   	  # The Logstash hosts
-   	  hosts: ["LOGSTASH_IP:FILEBEAT_PORT"]
+		#----------------------------- Logstash output --------------------------------
+		output.logstash:
+		  # The Logstash hosts
+		  hosts: ["LOGSTASH_IP:FILEBEAT_PORT"]
 
-   If you have few logstash instances - `Logstash` section has to be repeated on every node and `hosts:` should point to all of them:
+	If you have few logstash instances - `Logstash` section has to be repeated on every node and `hosts:` should point to all of them:
 
-   	hosts: ["LOGSTASH_IP:FILEBEAT_PORT", "LOGSTASH_IP:FILEBEAT_PORT", "LOGSTASH_IP:FILEBEAT_PORT" ]
+		hosts: ["LOGSTASH_IP:FILEBEAT_PORT", "LOGSTASH_IP:FILEBEAT_PORT", "LOGSTASH_IP:FILEBEAT_PORT" ]
 
 1. Create `/etc/filebeat/configs` catalog.
-
 1. Copy `naemon_logs.yml` to a newly created catalog.
-
 1. Check the newly added configuration and connection to logstash. Location of executable might vary based on os:
 
-   /usr/share/filebeat/bin/filebeat --path.config /etc/filebeat/ test config
-   	/usr/share/filebeat/bin/filebeat --path.config /etc/filebeat/ test output
+		/usr/share/filebeat/bin/filebeat --path.config /etc/filebeat/ test config
+		/usr/share/filebeat/bin/filebeat --path.config /etc/filebeat/ test output
 
 1. Restart filebeat:
 
-   sudo systemctl restart filebeat # RHEL/CentOS 7
-   	sudo service filebeat restart # RHEL/CentOS 6
+		sudo systemctl restart filebeat # RHEL/CentOS 7
+		sudo service filebeat restart # RHEL/CentOS 6
 
 ### Elasticsearch ###
 
@@ -96,18 +85,15 @@ If the index has been created, in order to browse and visualise the data, "index
 Below instruction requires that between ITRS Log Analytics node and Elasticsearch node is working Logstash instance.
 
 ### Elasticsearch ###
+1.	First, settings section in *ITRS Log Analyticstemplate.sh* should be adjusted, either:
+	- there is a default template present on Elasticsearch that already covers shards and replicas then settings sections should be removed from the *ITRS Log Analyticstemplate.sh* before executing
+	- there is no default template - shards and replicas should be adjusted for you environment (keep in mind replicas can be added later, while changing shards count on existing index requires 
+	reindexing it)
 
-1. First, settings section in *ITRS Log Analyticstemplate.sh* should be adjusted, either:
-
-   - there is a default template present on Elasticsearch that already covers shards and replicas then settings sections should be removed from the *ITRS Log Analyticstemplate.sh* before executing
-
-   - there is no default template - shards and replicas should be adjusted for you environment (keep in mind replicas can be added later, while changing shards count on existing index requires 
-     reindexing it)
-
-     	"settings": {
-     	  "number_of_shards": 5,
-     	  "number_of_replicas": 0
-     	}
+			"settings": {
+			  "number_of_shards": 5,
+			  "number_of_replicas": 0
+			}
 
 1. In URL *ITRS Log Analyticsperfdata* is a name for the template - later it can be search for or modify with it.
 
@@ -115,16 +101,17 @@ Below instruction requires that between ITRS Log Analytics node and Elasticsearc
 
 1. Mapping name should match documents type:
 
-   ```
-   "mappings": {
-   	  "ITRS Log Analyticsperflogs"
-   ```
+    ```
+    "mappings": {
+    	  "ITRS Log Analyticsperflogs"
+    ```
 
-   Running ITRS Log Analyticstemplate.sh will create a template (not index) for ITRS Log Analytics perf data documents.
+    Running ITRS Log Analyticstemplate.sh will create a template (not index) for ITRS Log Analytics perf data documents.
 
 ### Logstash ###
 
 1.	The *ITRS Log Analyticsperflogs.conf* contains example of *input/filter/output* configuration. It has to be copied to */etc/logstash/conf.d/*. Make sure that the *logstash* has permissions to read the configuration files:
+	
 
 chmod 664 /etc/logstash/conf.d/ITRS Log Analyticsperflogs.conf
 
@@ -141,19 +128,19 @@ chmod 664 /etc/logstash/conf.d/ITRS Log Analyticsperflogs.conf
 
 4. In an output section type should match with the rest of a *config*. host should point to your elasticsearch node. index name should correspond with what has been set in elasticsearch template to allow mapping application. The date for index rotation in its name is recommended and depending on the amount of data expecting to be transferred should be set to daily (+YYYY.MM.dd) or monthly (+YYYY.MM) rotation:
 
-   ```yaml
-   hosts => ["127.0.0.1:9200"]
-   index => "ITRS Log Analytics-perflogs-%{+YYYY.MM.dd}"
-   ```
+    ```yaml
+    hosts => ["127.0.0.1:9200"]
+    index => "ITRS Log Analytics-perflogs-%{+YYYY.MM.dd}"
+    ```
 
 5. Port has to be opened on a firewall:
 
-   ```bash
-   sudo firewall-cmd --zone=public --permanent --add-port=PORT_NUMBER/tcp
-   sudo firewall-cmd --reload
-   ```
+    ```bash
+    sudo firewall-cmd --zone=public --permanent --add-port=PORT_NUMBER/tcp
+    sudo firewall-cmd --reload
+    ```
 
-   
+    
 
 6. Logstash has to be reloaded:	
 
@@ -191,7 +178,7 @@ chmod 664 /etc/logstash/conf.d/ITRS Log Analyticsperflogs.conf
   ```
 
 - In process-service-perfdata-log.pl and process-host-perfdata-log.pl: change logstash IP and port:
-
+	
   ```bash
   92 my $logstashIP = "LOGSTASH_IP";
   93 my $logstashPORT = "LOGSTASH_PORT";
@@ -337,20 +324,19 @@ cp -rf var/* /var/
 ## The Grafana instalation ##
 
 1. To install the Grafana application you should:
+	- add necessary repository to operating system:
 
-   - add necessary repository to operating system:
-
-     [root@localhost ~]# cat /etc/yum.repos.d/grafan.repo
-     	[grafana]
-     	name=grafana
-     	baseurl=https://packagecloud.io/grafana/stable/el/7/$basearch
-     	repo_gpgcheck=1
-     	enabled=1
-     	gpgcheck=1
-     	gpgkey=https://packagecloud.io/gpg.key https://grafanarel.s3.amazonaws.com/RPM-GPG-KEY-grafana
-     	sslverify=1
-     	sslcacert=/etc/pki/tls/certs/ca-bundle.crt
-     	[root@localhost ~]#
+			[root@localhost ~]# cat /etc/yum.repos.d/grafan.repo
+			[grafana]
+			name=grafana
+			baseurl=https://packagecloud.io/grafana/stable/el/7/$basearch
+			repo_gpgcheck=1
+			enabled=1
+			gpgcheck=1
+			gpgkey=https://packagecloud.io/gpg.key https://grafanarel.s3.amazonaws.com/RPM-GPG-KEY-grafana
+			sslverify=1
+			sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+			[root@localhost ~]#
 
 
 	- install the Grafana with following commands:
@@ -403,9 +389,9 @@ cp -rf var/* /var/
     154 admin_password = admin
     155
     ```
-
     
-
+    
+    
   - restart *grafana-server* service:
 
 ```bash
@@ -434,26 +420,26 @@ Before uploading index-pattern or dashboard you have to authorize yourself:
 
 1. Set up *login/password/kibana_ip* variables, e.g.:
 
-   login=my_user
-   	password=my_password
-   	kibana_ip=10.4.11.243
+		login=my_user
+		password=my_password
+		kibana_ip=10.4.11.243
 
 1. Execute command which will save authorization cookie:
 
-   curl -c authorization.txt -XPOST -k "https://${kibana_ip}:5601/login" -d "username=${username}&password=${password}&version=6.2.3&location=https%3A%2F%2F${kibana_ip}%3A5601%2Flogin"
+		curl -c authorization.txt -XPOST -k "https://${kibana_ip}:5601/login" -d "username=${username}&password=${password}&version=6.2.3&location=https%3A%2F%2F${kibana_ip}%3A5601%2Flogin"
 
-1. Upload index-pattern and dashboard to *Kibana*, e.g.:
+1.	Upload index-pattern and dashboard to *Kibana*, e.g.:
 
-   	curl -b authorization.txt -XPOST -k "https://${kibana_ip}:5601/api/kibana/dashboards/import" -H 'kbn-xsrf: true' -H 'Content-Type: application/json' -d@/usr/share/filebeat/kibana/6/index-pattern/filebeat.json
-   	curl -b authorization.txt -XPOST -k "https://${kibana_ip}:5601/api/kibana/dashboards/import" -H 'kbn-xsrf: true' -H 'Content-Type: application/json' -d@/usr/share/filebeat/kibana/6/dashboard/Filebeat-mysql.json
+		curl -b authorization.txt -XPOST -k "https://${kibana_ip}:5601/api/kibana/dashboards/import" -H 'kbn-xsrf: true' -H 'Content-Type: application/json' -d@/usr/share/filebeat/kibana/6/index-pattern/filebeat.json
+		curl -b authorization.txt -XPOST -k "https://${kibana_ip}:5601/api/kibana/dashboards/import" -H 'kbn-xsrf: true' -H 'Content-Type: application/json' -d@/usr/share/filebeat/kibana/6/dashboard/Filebeat-mysql.json
 
-1. When you want to upload beats index template to Ealsticsearch you have to recover it first (usually you do not send logs directly to Es rather than to Logstash first):
+1.	When you want to upload beats index template to Ealsticsearch you have to recover it first (usually you do not send logs directly to Es rather than to Logstash first):
 
-   	/usr/bin/filebeat export template --es.version 6.2.3 >> /path/to/beats_template.json
+		/usr/bin/filebeat export template --es.version 6.2.3 >> /path/to/beats_template.json
 
-1. After that you can upload it as any other template (Access Es node with SSH):
+1.	After that you can upload it as any other template (Access Es node with SSH):
 
-   	curl -XPUT "localhost:9200/_template/ITRS Log Analyticsperfdata" -H'Content-Type: application/json' -d@beats_template.json
+		curl -XPUT "localhost:9200/_template/ITRS Log Analyticsperfdata" -H'Content-Type: application/json' -d@beats_template.json
 
 ## Wazuh integration ##
 
@@ -468,7 +454,6 @@ ITRS Log Analytics can integrate with the Wazuh, which is lightweight agent is d
 - Execution of active responses
 
 The Wazuh agents run on many different platforms, including Windows, Linux, Mac OS X, AIX, Solaris and HP-UX. They can be configured and managed from the Wazuh server.
-
 #### Deploying Wazuh Server ####
 
 https://documentation.wazuh.com/current/installation-guide/installing-wazuh-server/index.html#
@@ -484,12 +469,10 @@ https://documentation.wazuh.com/current/installation-guide/installing-wazuh-agen
 ## 2FA authorization with Google Auth Provider (example)
 
 ### Software used (tested versions):
-
 - NGiNX (1.16.1 - from CentOS base reposiory)
 - oauth2_proxy ([https://github.com/pusher/oauth2_proxy/releases](https://github.com/pusher/oauth2_proxy/releases) - 4.0.0)
 
 ### The NGiNX configuration:
-
 1. Copy the [ng_oauth2_proxy.conf](/files/ng_oauth2_proxy.conf) to `/etc/nginx/conf.d/`;
 1. Set `ssl_certificate` and `ssl_certificate_key` path in ng_oauth2_proxy.conf
 
@@ -500,60 +483,51 @@ However, if it is to be run with encryption, you also need to change `proxy_pass
 
 1. Create a directory in which the program will be located and its configuration:
 
-   ```bash
-   mkdir -p /usr/share/oauth2_proxy/
-   mkdir -p /etc/oauth2_proxy/
-   ```
+    ```bash
+    mkdir -p /usr/share/oauth2_proxy/
+    mkdir -p /etc/oauth2_proxy/
+    ```
 
 2. Copy files to directories:
 
-   ```bash
-   cp oauth2_proxy /usr/share/oauth2_proxy/
-   cp oauth2_proxy.cfg /etc/oauth2_proxy/
-   ```
+    ```bash
+    cp oauth2_proxy /usr/share/oauth2_proxy/
+    cp oauth2_proxy.cfg /etc/oauth2_proxy/
+    ```
 
 3. Set directives according to OAuth configuration in Google Cloud project
 
-   ```bash
-           cfg
-           client_id =
-           client_secret =
-           # the following limits domains for authorization (* - all)
-       ​	email_domains = [
-       ​	  "*"
-       ​	]
-   ```
+    ```bash
+            cfg
+            client_id =
+            client_secret =
+            # the following limits domains for authorization (* - all)
+        ​	email_domains = [
+        ​	  "*"
+        ​	]
+    ```
 
 4. Set the following according to the public hostname:
 
-   ```bash
-   cookie_domain = "kibana-host.org"
-   ```
+    ```bash
+    cookie_domain = "kibana-host.org"
+    ```
 
 5. In case 	og-in restrictions for a specific group defined on the Google side:
+	- Create administrative account: https://developers.google.com/identity/protocols/OAuth2ServiceAccount ; 
+	- Get configuration to JSON file and copy Client ID;
+	- On the dashboard of the Google Cloud select "APIs & Auth" -> "APIs";
+	- Click on "Admin SDK" and "Enable API";
+	- Follow the instruction at [https://developers.google.com/admin-sdk/directory/v1/guides/delegation#delegate_domain-wide_authority_to_your_service_account](https://developers.google.com/admin-sdk/directory/v1/guides/delegation#delegate_domain-wide_authority_to_your_service_account) and give the service account the following permissions:
 
-   - Create administrative account: https://developers.google.com/identity/protocols/OAuth2ServiceAccount ; 
+			https://www.googleapis.com/auth/admin.directory.group.readonly
+			https://www.googleapis.com/auth/admin.directory.user.readonly
 
-   - Get configuration to JSON file and copy Client ID;
-
-   - On the dashboard of the Google Cloud select "APIs & Auth" -> "APIs";
-
-   - Click on "Admin SDK" and "Enable API";
-
-   - Follow the instruction at [https://developers.google.com/admin-sdk/directory/v1/guides/delegation#delegate_domain-wide_authority_to_your_service_account](https://developers.google.com/admin-sdk/directory/v1/guides/delegation#delegate_domain-wide_authority_to_your_service_account) and give the service account the following permissions:
-
-     https://www.googleapis.com/auth/admin.directory.group.readonly
-     	https://www.googleapis.com/auth/admin.directory.user.readonly
-
-   - Follow the instructions to grant access to the Admin API [https://support.google.com/a/answer/60757](https://support.google.com/a/answer/60757)
-
-   - Create or select an existing administrative email in the Gmail domain to flag it `google-admin-email`
-
-   - Create or select an existing group to flag it `google-group`
-
-   - Copy the previously downloaded JSON file to `/etc/oauth2_proxy/`.
-
-   - In file [oauth2_proxy](/files/oauth2_proxy.cfg) set the appropriate path:
+	- Follow the instructions to grant access to the Admin API [https://support.google.com/a/answer/60757](https://support.google.com/a/answer/60757)
+	- Create or select an existing administrative email in the Gmail domain to flag it `google-admin-email`
+	- Create or select an existing group to flag it `google-group`
+	- Copy the previously downloaded JSON file to `/etc/oauth2_proxy/`.
+	- In file [oauth2_proxy](/files/oauth2_proxy.cfg) set the appropriate path:
 
     ```bash
     google_service_account_json =
@@ -574,7 +548,6 @@ In the browser enter the address pointing to the server with the ITRS Log Analyt
 ## Cerebro - Elasticsearch web admin tool
 
 ### Software Requirements
-
 1. Cerebro v0.8.4
 
 ```bash
@@ -688,29 +661,29 @@ play.ws.ssl.loose.acceptAnyCertificate=true
 
 - SSL access to cerebro
 
-  ```bash
-  http = {
-    port = "disabled"
-  }
-  https = {
-    port = "5602"
-  }
-  #SSL access to cerebro - no self signed certificates
-  #play.server.https {
-  #  keyStore = {
-  #    path = "keystore.jks",
-  #    password = "SuperSecretKeystorePassword"
-  #  }
-  #}
-  
-  #play.ws.ssl {
-  #  trustManager = {
-  #    stores = [
-  #      { type = "JKS", path = "truststore.jks", password = "SuperSecretTruststorePassword"  }
-  #    ]
-  #  }
-  #}
-  ```
+    ```bash
+    http = {
+      port = "disabled"
+    }
+    https = {
+      port = "5602"
+    }
+    #SSL access to cerebro - no self signed certificates
+    #play.server.https {
+    #  keyStore = {
+    #    path = "keystore.jks",
+    #    password = "SuperSecretKeystorePassword"
+    #  }
+    #}
+
+    #play.ws.ssl {
+    #  trustManager = {
+    #    stores = [
+    #      { type = "JKS", path = "truststore.jks", password = "SuperSecretTruststorePassword"  }
+    #    ]
+    #  }
+    #}
+    ```
 
 6. Start the service
 
@@ -794,7 +767,6 @@ Example running command:
 ### Sample configuration file
 
 ---
-
 Remember, leave a key empty if there is no value.  None will be a string, not a Python "NoneType"
 
 ```bash
@@ -1138,7 +1110,7 @@ Press `Next` button.
 3. Select the `Configure your own mapping` for every field. You can choose the type and apply more options with the advanced JSON.
    The list of parameters can be found here, https://www.elastic.co/guide/en/elasticsearch/reference/7.x/mapping-params.html
 
-4. After the import configuration is complete, select the `Import` button to start the import process.
+4.  After the import configuration is complete, select the `Import` button to start the import process.
 5. After the import process is completed, a summary will be displayed. Now you can create a new index pattern to view your data in the Discovery module.
 
 ![](/media/media/image140.png)
@@ -1170,46 +1142,46 @@ Example for the file `/var/log/messages`
 
 1. Add the Logstash configuration file in the correct pipline (default is "logtrail"):
 
-   ```bash
-   vi /etc/logstash/conf.d/logtrail/messages.conf
-   ```
+    ```bash
+    vi /etc/logstash/conf.d/logtrail/messages.conf
+    ```
 
-   ```bash
-   input {
-       file {
-           path => "/var/log/messages"
-           start_position => beginning
-           tags => "logtrail_messages"
-       }
-   }
-   filter {
-           if "logtrail_messages" in [tags] {
-                   grok {
-                           match => {
-                                   #"message" => "%{SYSLOGTIMESTAMP:syslog_timestamp} %{SYSLOGHOST:hostname} %{DATA:program}(?:\[%{POSINT:pid}\])?: %{GREEDYDATA:syslog_message}"
-   # If syslog is format is "<%PRI%><%syslogfacility%>%TIMESTAMP% %HOSTNAME% %syslogtag%%msg:::sp-if-no-1st-sp%%msg:::drop-last-lf%\n"
-                                   "message" => "<?%{NONNEGINT:priority}><%{NONNEGINT:facility}>%{SYSLOGTIMESTAMP:syslog_timestamp} %{SYSLOGHOST:hostname} %{DATA:program}(?:\[%{POSINT:pid}\])?: %{GREEDYDATA:syslog_message}"
-                                   }
-                           }
-                   date {
-                           match => [ "syslog_timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
-                   }
-                   ruby {
-                           code =>  "event.set('level',event.get('priority').to_i - ( event.get('facility').to_i * 8 ))"
-                   }
-           }
-   }
-   output {
-       if "logtrail_messages" in [tags] {
-           elasticsearch {
-               hosts => "http://localhost:9200"
-               index => "logtrail-messages-%{+YYYY.MM}"
-               user => "logstash"
-               password => "logstash"
-           }
-       }
-   }
-   ```
+    ```bash
+    input {
+        file {
+            path => "/var/log/messages"
+            start_position => beginning
+            tags => "logtrail_messages"
+        }
+    }
+    filter {
+            if "logtrail_messages" in [tags] {
+                    grok {
+                            match => {
+                                    #"message" => "%{SYSLOGTIMESTAMP:syslog_timestamp} %{SYSLOGHOST:hostname} %{DATA:program}(?:\[%{POSINT:pid}\])?: %{GREEDYDATA:syslog_message}"
+    # If syslog is format is "<%PRI%><%syslogfacility%>%TIMESTAMP% %HOSTNAME% %syslogtag%%msg:::sp-if-no-1st-sp%%msg:::drop-last-lf%\n"
+                                    "message" => "<?%{NONNEGINT:priority}><%{NONNEGINT:facility}>%{SYSLOGTIMESTAMP:syslog_timestamp} %{SYSLOGHOST:hostname} %{DATA:program}(?:\[%{POSINT:pid}\])?: %{GREEDYDATA:syslog_message}"
+                                    }
+                            }
+                    date {
+                            match => [ "syslog_timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
+                    }
+                    ruby {
+                            code =>  "event.set('level',event.get('priority').to_i - ( event.get('facility').to_i * 8 ))"
+                    }
+            }
+    }
+    output {
+        if "logtrail_messages" in [tags] {
+            elasticsearch {
+                hosts => "http://localhost:9200"
+                index => "logtrail-messages-%{+YYYY.MM}"
+                user => "logstash"
+                password => "logstash"
+            }
+        }
+    }
+    ```
 
 2. Restart the Logstash service
 

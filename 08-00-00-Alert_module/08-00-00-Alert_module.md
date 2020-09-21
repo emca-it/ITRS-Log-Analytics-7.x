@@ -32,6 +32,7 @@ Only applies to versions 6.1.5 and older. From version 6.1.6 and later, the Aler
 - start the Alert service:
   
 		systemctl start alert
+
 ## Creating Alerts ##
 
 To create the alert, click the "Alerts" button from the main menu bar.
@@ -467,7 +468,7 @@ chown logstash:kibana /etc/logstash/lists/
 chmod g+w /etc/logstash/lists/
 ```
 
-- Log in to Energy Logserver GUI and go to **Scheduler** app. Set it up with below options and push "Submit" button:
+- Log in to ITRS Log Analytics GUI and go to **Scheduler** app. Set it up with below options and push "Submit" button:
 
 ```bash
 Name:           BadReputationList

@@ -85,8 +85,8 @@ If the index has been created, in order to browse and visualise the data, "index
 Below instruction requires that between ITRS Log Analytics node and Elasticsearch node is working Logstash instance.
 
 ### Elasticsearch ###
-1.	First, settings section in *ITRS Log Analyticstemplate.sh* should be adjusted, either:
-	- there is a default template present on Elasticsearch that already covers shards and replicas then settings sections should be removed from the *ITRS Log Analyticstemplate.sh* before executing
+1.	First, settings section in ITRS Log Analytics *template.sh* should be adjusted, either:
+	- there is a default template present on Elasticsearch that already covers shards and replicas then settings sections should be removed from the ITRS Log Analytics *template.sh* before executing
 	- there is no default template - shards and replicas should be adjusted for you environment (keep in mind replicas can be added later, while changing shards count on existing index requires 
 	reindexing it)
 

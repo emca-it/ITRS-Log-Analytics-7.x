@@ -7,6 +7,19 @@ curl -u $USER:$PASSWORD -X GET http://localhost:9200/license
 
 ## Upgrade from version 7.0.3
 
+### General note
+
+1. Indicators of compromise (IOCs auto-update) require access to the software provider's servers. 
+
+2. GeoIP Databases (auto-update) require access to the software provider's servers.
+
+3. Archive plugin require `ztsd` package to work: 
+
+   ```bash
+   yum install zstd
+   ```
+### Upgrade steps
+
 1. Stop services   
 
    ```bash

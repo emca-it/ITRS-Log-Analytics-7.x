@@ -5,74 +5,30 @@
 curl -u $USER:$PASSWORD -X GET http://localhost:9200/license
 ```
 
-## Upgrade from version 7.0.1
+## Upgrade from version 7.0.3
 
-### General note
+1. Stop services   
 
-- Update the `kibana` role to include index-pattern `.kibana*`
-- Update the `alert` role to include index-pattern `.alertrules*` and `alert_status*`
-- Install `python36` which is required for the Alerting engine on client-node:
-```bash 
-yum install python3
-```
-- AD users should move their saved objects  from the `adrole`.
-- Indicators of compromise (IOCs auto-update) require access to the software provider's servers.
-- GeoIP Databases (auto-update) require access to the software provider's servers.
+   ```bash
+   systemctl stop elasticsearch alert kibana cerebro
+   ```
 
-### Upgrade steps
+2. Upgrade client-node (includes alert engine):
 
-- Stop services
+   ```bash
+   yum update ./PACKAGE_NAME_VARIABLE-client-node-VERSION_TEMPLATE_VARIABLE-1.el7.x86_64.rpm
+   ```
+3. Upgrade data-node:   
 
-```bash
-systemctl stop elasticsearch alert kibana
-```
+   ```bash
+   yum update ./PACKAGE_NAME_VARIABLE-data-node-VERSION_TEMPLATE_VARIABLE-1.el7.x86_64.rpm
+   ```
 
-- Upgrade client-node (includes alert engine)
-
-```bash
-yum update ./itrs-log-analytics-client-node-7.0.2-1.el7.x86_64.rpm
-```
-
-- Login in the GUI ITRS Log Analytics and go to the `Alert List`  on the `Alerts` tab and click `SAVE` button
-
-![](/media/media/image143.png)
-
-- Start  `alert` and `kibana` service
-
-```bash
-systemctl start alert kibana
-```
-
-- Upgrade data-node
-
-```bash
-yum update ./itrs-log-analytics-data-node-7.0.2-1.el7.x86_64.rpm
-```
-
-- Start services
-
-```bash
-systemctl start elasticsearch
-```
-
-**Extra note**
-
-If the Elasticsearch service has been started on the client-node, then it is necessary to update the **client.rpm** and **data.rpm** packages on the client node. 
-
-After update, you need to edit:
-
-```bash
-/etc/elasticsearch/elasticsearch.yml
-```
-and change:
-```bash
-node.data: false
-```
-Additionally, check the file:
-```bash
-elasticsearch.yml.rpmnew
-```
-and complete the configuration in `elasticsearch.yml` with additional lines.
+4. Start services:
+   
+   ```bash
+   systemctl start elasticsearch alert kibana cerebro
+   ```
 
 ## Changing OpenJDK version
 

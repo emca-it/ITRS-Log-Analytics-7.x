@@ -226,6 +226,30 @@ The ITRS Log Analytics installer is delivered as:
 
 #### Installation using "install.sh"
 
+- unpack the archive containing the installer
+
+  ```bash
+  tar xjf itrs-log-analytics-7.0.x.x86_64.tar.bz2
+  ```
+
+- copy license to installation directory
+
+  ```bash
+  cp es_*.licnse install/
+  ```
+
+- go to the installation directory
+
+  ```bash
+  cd install/
+  ```
+
+- run the installer
+
+  ```bash
+  ./install.sh -i
+  ```
+
 During installation you will be ask about following tasks:
 
 -  install & configure Logstash with custom ITRS Log Analytics Configuration - like Beats, Syslog, Blacklist, Netflow, Wazuh, Winrm, Logtrail, OP5, etc;
@@ -245,10 +269,13 @@ During installation you will be ask about following tasks:
 
     ```bash
     vi /etc/elaticserach/elasticsearch.yml
-    
-    add all IPs of Elasticsearch node in the following directive:
-    discovery.zen.ping.unicast.hosts: [ "172.10.0.1:9300", "172.10.0.2:9300" ]
     ```
+    
+    - add all IPs of Elasticsearch node in the following directive:
+    
+      ```bash
+      discovery.seed_hosts: [ "172.10.0.1:9300", "172.10.0.2:9300" ]
+      ```
     
 - start Elasticsearch service
 
@@ -329,6 +356,56 @@ During installation you will be ask about following tasks:
     systemctl restart kibana
     ```
     
+
+#### Scheduling bad IP lists update
+
+Requirements:
+- Make sure you have Logstash 6.4 or newer.
+- Enter your credentials into scripts: misp_threat_lists.sh
+
+To update bad reputation lists and to create `.blacklists` index, you have to run `badreputation_iplists.sh and misp_threat_lists.sh script (best is to put in schedule).
+
+1. This can be done in cron (host with logstash installed) in /etc/crontab:
+```bash
+0 1 * * * logstash /etc/logstash/lists/bin/badreputation_iplists.sh
+0 2 * * * logstash /etc/logstash/lists/bin/misp_threat_lists.sh
+```
+
+2. Or with Kibana Scheduller app (**only if logstash is running on the same host**).
+- Prepare script path:
+
+```bash
+/bin/ln -sfn /etc/logstash/lists/bin /opt/ai/bin/lists
+chown logstash:kibana /etc/logstash/lists/
+chmod g+w /etc/logstash/lists/
+```
+
+- Log in to GUI and go to **Scheduler** app. Set it up with below options and push "Submit" button:
+
+```
+Name:           BadReputationList
+Cron pattern:   0 1 * * *
+Command:        lists/badreputation_iplists.sh
+Category:       logstash
+```
+
+and second:
+
+```
+Name:           MispThreatList
+Cron pattern:   0 2 * * *
+Command:        lists/misp_threat_lists.sh
+Category:       logstash
+
+```
+
+3. After a couple of minutes check for blacklists index:
+
+```bash
+curl -sS -u logserver:logserver -XGET '127.0.0.1:9200/_cat/indices/.blacklists?s=index&v'
+health status index       uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   .blacklists Mld2Qe2bSRuk2VyKm-KoGg   1   0      76549            0      4.7mb          4.7mb
+```
 
 ## First login ##
 

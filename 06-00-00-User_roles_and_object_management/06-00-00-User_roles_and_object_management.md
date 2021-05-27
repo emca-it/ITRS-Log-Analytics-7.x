@@ -148,62 +148,54 @@ The table below contains built-in user accounts and default passwords:
 After you change password for one of the system account ( alert, intelligence, logserver, scheduler), you must to do appropriate changes in the application files.
 
 1. Account **Logserver**
-   
-   - Update */etc/kibana/kibana.yml*
-   
-     ```bash
-     vi /etc/kibana/kibana.yml
-     elasticsearch.password: new_logserver_passowrd
-     elastfilter.password: "new_logserver_password"
-     cerebro.password: "new_logserver_password"
-     ```
-   
-   - Update password in *curator* configuration file: */usr/share/kibana/curator/curator.yml*
-   
-     ```yml
-     http_auth: logserver:"new_logserver_password"
-     ```
-   
-2. Account **Intelligence**
+		
+	- Update */etc/kibana/kibana.yml*:
+		
+	```bash
+	vi /etc/kibana/kibana.yml
+	elasticsearch.password: new_logserver_passowrd
+	elastfilter.password: "new_logserver_password"
+	cerebro.password: "new_logserver_password"
+	```
 
-   - Update */opt/ai/bin/conf.cfg*
 
-     ```bash
-     vi /opt/ai/bin/conf.cfg
-     password=new_intelligence_password
-     ```
+1. Account **Intelligence**
 
-3. Account **Alert**
+	- Update */opt/ai/bin/conf.cfg*
 
-   - Update file */opt/alert/config.yaml*
+	```bash
+	vi /opt/ai/bin/conf.cfg
+	password=new_intelligence_password
+	```
 
-     ```yaml
-     vi /opt/alert/config.yaml
-     es_password: alert
-     ```
-
-4. Account **Scheduler**
-
-   - Update */etc/kibana/kibana.yml*
-
-     ```yml
-     vi /etc/kibana/kibana.yml	
-     elastscheduler.password: "new_scheduler_password"
-     ```
-
-5. Account **Logstash**
-
-   - Update the Logstash pipeline configuration files (*.conf) in output sections:
-
-     ```bash
-     vi /etc/logstash/conf.d/*.conf
-     elasticsearch {
-     	hosts => ["localhost:9200"]
-     	index => "syslog-%{+YYYY.MM}"
-     	user => "logstash"
-     	password => "new_password"
-     }
-     ```
+1. Account **Alert**
+	- Update file /opt/alert/config.yaml
+	
+	```bash
+	vi /opt/alert/config.yaml
+	es_password: alert
+	```
+	
+1. Account **Scheduler**
+	- Update */etc/kibana/kibana.yml*:
+	
+	```bash
+	vi /etc/kibana/kibana.yml	
+	elastscheduler.password: "new_scheduler_password"
+	```
+	
+1. Account **Logstash**
+	- Update the Logstash pipeline configuration files (*.conf) in output sections:
+		
+	```bash
+	vi /etc/logstash/conf.d/*.conf
+	elasticsearch {
+		hosts => ["localhost:9200"]
+		index => "syslog-%{+YYYY.MM}"
+		user => "logstash"
+		password => "new_password"
+	}
+	```
 
 ## Module Access
 

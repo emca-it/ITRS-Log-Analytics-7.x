@@ -1083,6 +1083,8 @@ Secure Sockets Layer (SSL) and Transport Layer Security (TLS) provide encryption
 	server.ssl.certificate: "/path/to/kibana-server.crt"
 	server.ssl.key: "/path/to/kibana-server.key"
 	```
+	
+	
 
 ## Index rollover
 

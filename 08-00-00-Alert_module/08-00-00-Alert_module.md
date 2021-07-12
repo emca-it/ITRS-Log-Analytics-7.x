@@ -104,34 +104,82 @@ how many event sit found and how many times it worked.
 
 Also, on this tab, you can recover the alert dashboard, by clicking the "Recovery Alert Dashboard" button.
 
-## Alert rules ##
+## Alerts status ##
 
-The various RuleType classes, defined in ITRS Log Analytics-Log-Aalytics. 
+In the "Alert status" tab, you can check the current alert status: if
+it activated, when it started and when it ended, how long it lasted,
+how many event sit found and how many times it worked.
+
+![](/media/media/image95.png)
+
+Also, on this tab, you can recover the alert dashboard, by clicking the "Recovery Alert Dashboard" button.
+
+## Alert Types
+
+The various Rule Type classes, defined in the ITRS Log-Analytics. 
 An instance is held in memory for each rule, passed all of the data returned by querying Elasticsearch 
 with a given filter, and generates matches based on that data.
 
-- ***Any*** - The any rule will match everything. Every hit that the query returns will generate an alert.
-- ***Blacklist*** - The blacklist rule will check a certain field against a blacklist, and match if it is in the blacklist.
-- ***Whitelist*** - Similar to blacklist, this rule will compare a certain field to a whitelist, 
-and match if the list does not contain the term.
-- ***Change*** - This rule will monitor a certain field and match if that field changes. 
-- ***Frequency*** - his rule matches when there are at least a certain number of events in a given time frame. 
-- ***Spike*** - This rule matches when the volume of events during a given time period is spike_height times 
-larger or smaller than during the previous time period.
-- ***Flatline*** - This rule matches when the total number of events is under a given threshold for a time period.
-- ***New Term*** - This rule matches when a new value appears in a field that has never been seen before.
-- ***Cardinality*** - This rule matches when a the total number of unique values for a certain field within 
+### Any
+
+The any rule will match everything. Every hit that the query returns will generate an alert.
+
+### Blacklist
+
+The blacklist rule will check a certain field against a blacklist, and match if it is in the blacklist.
+
+### Whitelist
+
+Similar to blacklist, this rule will compare a certain field to a whitelist, and match if the list does not contain the term.
+
+### Change
+
+This rule will monitor a certain field and match if that field changes.
+
+### Frequency
+
+This rule matches when there are at least a certain number of events in a given time frame.
+
+### Spike
+
+This rule matches when the volume of events during a given time period is spike_height times larger or smaller than during the previous time period.
+
+### Flatline
+
+This rule matches when the total number of events is under a given threshold for a time period.
+
+### New Term
+
+This rule matches when a new value appears in a field that has never been seen before.
+
+### Cardinality
+
+This rule matches when a the total number of unique values for a certain field within
 a time frame is higher or lower than a threshold.
-- ***Metric Aggregation*** - This rule matches when the value of a metric within the calculation window 
-is higher or lower than a threshold.
-- ***Percentage Match*** - This rule matches when the percentage of document in the match bucket within a calculation window is higher or lower than a threshold.
-- ***Unique Long Term*** - This rule matches when there are values of compare_key in each checked timeframe.
-- ***Find Match*** - Rule match when in defined period of time, two correlated documents match certain strings.
-- ***Difference*** - Rule matches for value difference between two aggregations calculated for different periods in time.
-- ***ConsecutiveGrowth*** - Rule matches for value difference between two aggregations calculated for different periods in time.
-- ***Logical*** - Rule matches when a complex, logical criteria is met. Rule can be use for alert data correlation.
-- ***Chain*** - Rule matches when a complex, logical criteria is met. Rule can be use for alert data correlation.
+
+### Metric Aggregation
+
+This rule matches when the value of a metric within the calculation window is higher or lower than a threshold.
+
+### Percentage Match
+
+This rule matches when the percentage of document in the match bucket within a calculation window is higher or lower than a threshold.
+
+### Unique Long Term
+
+This rule matches when there are values of compare_key in each checked timeframe.
+
+### Find Match
+
+Rule match when in defined period of time, two correlated documents match certain strings.
+
+### Consecutive Growth
+
+Rule matches for value difference between two aggregations calculated for different periods in time.
+
 ### Logical
+
+Rule matches when a complex, logical criteria is met. Rule can be use for alert data correlation.
 
 An example of using the Logical rule type.
 
@@ -147,6 +195,8 @@ If both of the above alerts are met within no more than 5 minutes and the values
 
 ### Chain
 
+Rule matches when a complex, logical criteria is met. Rule can be use for alert data correlation.
+
 An example of using the Chain rule type.
 
 ![](/media/media/image148.png)
@@ -154,7 +204,7 @@ An example of using the Chain rule type.
 Alerts that must occur for the rule to be triggered:
 
 - Linux - Login Failure - the alert must appear 10 times.
-  - AND
+- AND
 - Linux - Login Success - 1 time triggered alert.
 
 If the sequence of occurrence of the above alerts is met within 5 minutes and the values of the "username" field are related to each other, the alert rule is triggered. The order in which the component alerts occur is important.
@@ -164,135 +214,40 @@ If the sequence of occurrence of the above alerts is met within 5 minutes and th
 This rule calculates percentage difference between aggregations for two non-overlapping time windows.
 
 Let’s assume x represents the current time (i.e. when alert rule is run) then the relation between historical and present time windows is described by the inequality:
+
 ```
 <x – agg_min – delta_min; x – delta_min> <= <x – agg_min; x>; where x – delta_min <= x – agg_min => delta_min >= agg_min
 ```
+
 The percentage difference is then described by the following equation:
+
 ```
 d = | avg_now – avg_history | / max(avg_now, avg_history) * 100; for (avg_now – avg_history != 0; avg_now != 0; avg_history != 0)
 d = 0; (in other cases)
 ```
+
 `avg_now` is the arithmetic mean of `<x – agg_min; x>`
 `avg_history` is the arithmetic mean of `<x – agg_min – delta_min; x – delta_min>`
 
 Required parameters:
 
 - Enable the rule by setting type field.
-`type: difference`
+  `type: difference`
 - Based on the compare_key field aggregation is calculated.
-`compare_key: value`
+  `compare_key: value`
 - An alert is triggered when the percentage difference between aggregations is higher than the specified value.
-`threshold_pct: 10`
+  `threshold_pct: 10`
 - The difference in minutes between calculated aggregations.
-`delta_min: 3`
+  `delta_min: 3`
 - Aggregation bucket (in minutes).
-`agg_min: 1`
+  `agg_min: 1`
 
 Optional parameters:
 
 If present, for each unique `query_key` aggregation is calculated (it needs to be of type keyword).
 `query_key: hostname`
 
-## Alert Type ##
-
-When the alert rule is fulfilled, the defined action is performed - the alert method.
-The following alert methods have been predefined in the system:
-- email;
-- commands;
-- user;
-
-### Email 
-
-Method that sends information about an alert to defined email addresses.
-
-### User
-
-Method that sends information about an alert to defined system users.
-
-### Command
-
- A method that performs system tasks. For example, it triggers a script that creates a new event in the customer ticket system.
-
-Below is an example of an alert rule definition that uses the "command" alert method to create and recover an ticket in the client's ticket system:
-
-```bash
-index: op5-*
-name: change-op5-hoststate
-type: change
-
-compare_key: hoststate
-ignore_null: true
-query_key: hostname
-
-filter:
-- query_string:
-    query: "_exists_: hoststate AND datatype: \"HOSTPERFDATA\" AND _exists_: hostname"
-
-realert:
-  minutes: 0
-alert: "command"
-command: ["/opt/alert/send_request_change.sh", "5", "%(hostname)s", "SYSTEM_DOWN", "HOST", "Application Collection", "%(hoststate)s", "%(@timestamp)s"]
-```
-
-The executed command has parameters which are the values of the fields of the executed alert. Syntax: `%(fields_name)`.
-
-- ### The Hive
-
-  The alert module can forward information about the alert to *Security Incident Response Platform* **TheHive**.
-
-  The configuration of the **Hive Alert** should be done in the definition of the `Rule Definition` alert using the following options:
-
-  - `hive_alert_config_type: classic` - allows the use of variables to build The Hive alert
-  - `hive_alert_config`:
-    - `title` (text) : title of the alert (ignored in `classic` config type)
-    - `description` (text) : description of the alert (ignored in `classic` config type)
-    - `severity` (number) : severity of the alert (1: low; 2: medium; 3: high) **default=2**
-    - `date` (date) : date and time when the alert was raised **default=now**
-    - `tags` (multi-string) : case tags **default=empty**
-    - `tlp` (number) : [TLP](https://www.us-cert.gov/tlp) (`0`: `white`; `1`: `green`; `2: amber`; `3: red`) **default=2**
-    - `status` (AlertStatus) : status of the alert (*New*, *Updated*, *Ignored*, *Imported*) **default=New**
-    - `type` (string) : type of the alert (read only)
-    - `source` (string) : source of the alert (read only)
-    - `sourceRef` (string) : source reference of the alert (read only)
-    - `artifacts` (multi-artifact) : artifact of the alert. It is a array of JSON object containing artifact attributes **default=empty**
-    - `follow` (boolean) : if true, the alert becomes active when updated **default=true**
-  - `hive_observable_data_mapping` - mapping field values to the The Hive alert.
-
-  **Note:** When use: `hive_alert_config_type: classic` the following parameters are ignored:
-
-  ```yaml
-  hive_alert_config:
-      title: title of the alert
-      description: description of the alert
-  ```
-
-  and you should use:
-
-  ```yaml
-  alert_subject: "title of the alert"
-  alert_text: "description of the alert"
-  ```
-
-Example of configuration:
-
-```bash
-hive_alert_config_type: classic
-
-hive_alert_config:
-  type: 'test'
-  source: 'elastalert-{rule[name]}'
-  severity: 3
-  tags: ['malicious behavior']
-  tlp: 2
-  status: 'New'
-  follow: True
-
-hive_observable_data_mapping:
-  - ip: "{match[field1]}"
-  - source: "{match[field2]}"
-```
-
-## Alert Content
+## Alert Methods
 
 There are several ways to format the body text of the various types of events. In EBNF::
 

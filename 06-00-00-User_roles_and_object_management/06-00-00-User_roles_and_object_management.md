@@ -219,22 +219,22 @@ The system allows you to manage, create and delete API access keys from the leve
 
 Examples of implementation:
 
-	1. From the main menu select "Dev Tools" button:
+   1. From the main menu select "Dev Tools" button:
 
 ![](/media/media/image213.png)
 
-	2. List of active keys:
+   2. List of active keys:
 
 ![](/media/media/image209.png)
 
-	3. Details of a single key:
+   3. Details of a single key:
 
 ![](/media/media/image210.png)
 
-	4. Create a new key:
+   4. Create a new key:
 
 ![](/media/media/image211.png)
 
-	5. Deleting the key:
+   5. Deleting the key:
 
 ![](/media/media/image212.png)

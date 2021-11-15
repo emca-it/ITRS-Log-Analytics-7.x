@@ -444,6 +444,85 @@ health status index       uuid                   pri rep docs.count docs.deleted
 green  open   .blacklists Mld2Qe2bSRuk2VyKm-KoGg   1   0      76549            0      4.7mb          4.7mb
 ```
 
+## Docker support
+
+To get system cluster up and running in Docker, you can use Docker Compose.
+
+Sample a `docker-compose.yml` file:
+
+```bash
+version: '7.1.0'
+services:
+  itrs-log-analytics-client-node:
+    image: docker.emca.pl/itrs-log-analytics-client-node:7.1.0
+    container_name: itrs-log-analytics-client-node
+    environment:
+      - node.name=itrs-log-analytics-client-node
+      - cluster.name=logserver
+      - discovery.seed_hosts=itrs-log-analytics-client-node,itrs-log-analytics-data-node,itrs-log-analytics-collector-node
+      - cluster.initial_master_nodes=itrs-log-analytics-client-node,itrs-log-analytics-data-node,itrs-log-analytics-collector-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - logserver
+  itrs-log-analytics-data-node:
+    image: docker.emca.pl/itrs-log-analytics-client-node:7.1.0
+    container_name: itrs-log-analytics-data-node
+    environment:
+      - node.name=itrs-log-analytics-data-node
+      - cluster.name=logserver
+      - discovery.seed_hosts=itrs-log-analytics-client-node,itrs-log-analytics-data-node,itrs-log-analytics-collector-node
+      - cluster.initial_master_nodes=itrs-log-analytics-client-node,itrs-log-analytics-data-node,itrs-log-analytics-collector-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data02:/usr/share/elasticsearch/data
+    networks:
+      - logserver
+  itrs-log-analytics-collector-node:
+    image: docker.emca.pl/itrs-log-analytics-collector-node:7.1.0
+    container_name: itrs-log-analytics-collector-node
+    environment:
+      - node.name=itrs-log-analytics-collector-node
+      - cluster.name=logserver
+      - discovery.seed_hosts=itrs-log-analytics-client-node,itrs-log-analytics-data-node,itrs-log-analytics-collector-node
+      - cluster.initial_master_nodes=itrs-log-analytics-client-node,itrs-log-analytics-data-node,itrs-log-analytics-collector-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data03:/usr/share/elasticsearch/data
+    networks:
+      - logserver
+
+volumes:
+  data01:
+    driver: local
+  data02:
+    driver: local
+  data03:
+    driver: local
+
+networks:
+  elastic:
+    driver: bridge
+```
+
 ## First login ##
 
 If you log in to ITRS Log Analytics for the first time, you must

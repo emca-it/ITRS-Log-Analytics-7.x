@@ -188,7 +188,7 @@ To do this use *pass-encrypter.sh* script that is located in the *Utils* directo
 
 1. Installation of *pass-encrypter*
 
-		cp -pr /instalation_folder/elasticsearch/pass-encrypter /usr/share/elasticsearch/
+		cp -pr /instalation_folder/elasticsearch/utils/pass-encrypter /usr/share/elasticsearch/
 
 1. Use *pass-encrypter*
 

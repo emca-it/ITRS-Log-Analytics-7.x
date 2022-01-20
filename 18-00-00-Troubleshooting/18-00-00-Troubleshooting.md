@@ -106,15 +106,12 @@ Generate a new server.ironsecret with the following command:
 ```bash
 echo "server.ironsecret: \"$(</dev/urandom tr -dc _A-Z-a-z-0-9 | head -c32)\"" >> /etc/kibana/kibana.yml
 ```
+
 ## Diagnostic tool
 
 ITRS Log-Analytics includes a diagnostic tool that helps solve your problem by collecting system data necessary for problem analysis by the support team.
-
-### Location
-
-The diagnostic tool is located in the installation directory: `utils/diagnostic-tool.sh`
-
-### Gathering information
+																																   
+The diagnostic tool is located in the installation directory: `/usr/share/elasticsearch/utils/diagnostic-tool.sh`
 
 Diagnostic tool collect the following information:
 
@@ -122,7 +119,7 @@ Diagnostic tool collect the following information:
 - logs file for Kibana, Alert, Cerebro, Elasticsearch
 - Cluster information from Elasticsearch API
 
-When the diagnostic tool collects data, the credentials are removed from the content of the files.
+When the diagnostic tool collects data passwords and IP address are removed from the content of files.
 
 ### Running the diagnostic tool
 

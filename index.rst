@@ -1,4 +1,4 @@
-EMCA_PROD_NAME 7.x User Guide
+ITRS Log Analytics 7.x User Guide
 ------------------------------
 
 .. toctree::

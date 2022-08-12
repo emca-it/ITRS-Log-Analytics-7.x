@@ -327,7 +327,7 @@ Configuration steps:
       #!/usr/bin/env bash
       base_url = "http://localhost/Archer" ##set the appropriate Archer URL
       
-      logger -n $base_url -t logger -p daemon.alert -T "CEF:0|EnergyLogServer|EnergyLogServer|${19}|${18}| TimeStamp=$1 DeviceVendor/Product=$2-$3 Message=$4 TransportProtocol=$5 Aggregated:$6 AttackerAddress=$7 AttackerMAC=$8 AttackerPort=$9 TargetMACAddress=${10} TargetPort=${11} TargetAddress=${12} FlexString1=${13} Link=${14} ${15} $1 ${16} $7 ${17}"
+      logger -n $base_url -t logger -p daemon.alert -T "CEF:0|LogServer|LogServer|${19}|${18}| TimeStamp=$1 DeviceVendor/Product=$2-$3 Message=$4 TransportProtocol=$5 Aggregated:$6 AttackerAddress=$7 AttackerMAC=$8 AttackerPort=$9 TargetMACAddress=${10} TargetPort=${11} TargetAddress=${12} FlexString1=${13} Link=${14} ${15} $1 ${16} $7 ${17}"
       ```
 
    - ucf2.sh - for REST API
@@ -340,7 +340,7 @@ Configuration steps:
       password = "Archer"
 
       curl -k -u $username:$password -H "Content-Type: application/xml" -X POST "$base_url:50105/$instance_name" -d {
-      "CEF":"0","Server":"EnergyLogServer","Version":"${19}","NameEvent":"${18}","TimeStamp":"$1","DeviceVendor/Product":"$2-$3","Message""$4","TransportProtocol":"$5","Aggregated":"$6","AttackerAddress":"$7","AttackerMAC":"$8","AttackerPort":"$9","TargetMACAddress":"${10}","TargetPort":"${11}","TargetAddress":"${12}","FlexString1":"${13}","Link":"${14}","EventID":"${15}","EventTime":"${16}","RawEvent":"${17}"
+      "CEF":"0","Server":"LogServer","Version":"${19}","NameEvent":"${18}","TimeStamp":"$1","DeviceVendor/Product":"$2-$3","Message""$4","TransportProtocol":"$5","Aggregated":"$6","AttackerAddress":"$7","AttackerMAC":"$8","AttackerPort":"$9","TargetMACAddress":"${10}","TargetPort":"${11}","TargetAddress":"${12}","FlexString1":"${13}","Link":"${14}","EventID":"${15}","EventTime":"${16}","RawEvent":"${17}"
       }
       ```
  
@@ -732,7 +732,7 @@ The value field value is then added to the table on which the risk calculation a
 
 The Incident module allows you to handle incidents created by triggered alert rules. 
 
-![](/media/media/image154.PNG)
+![](/media/media/image154.png)
 
 Incident handling allows you to perform the following action:
 
@@ -7837,13 +7837,125 @@ condition we are interested in is met, we send an action in the form
 of sending a message to our e-mail address. In the action, you can
 also set the launch of any script.
 
-## Wazuh
+### Incident detection and mitigation time
 
-ITRS Log Analytics, through its built-in vulnerability detection module called Wazuh and the use of best practices defined in the CIS, allows to audit monitored environment for security vulnerabilities, misconfigurations, or outdated software versions. File Integrity Monitoring functionality allows for detailed monitoring and alerting of unauthorized access attempts to most sensitive data.
+The ITRS Log Analytics allows you to keep track of the time and actions taken in the incident you created. 
+A detected alert incident has the date the incident occurred `match_body.@timestamp` and the date and time the incident was detected `alert.time`. 
+
+In addition, it is possible to enrich the alert event with the date and time of incident resolution `alert_solvedtime` using the following pipeline:
+
+```conf
+  input {
+      elasticsearch {
+          hosts => "http://localhost:9200"
+          user => logserver
+          password => logserver
+          index => "alert*"
+          size => 500
+          scroll => "5m"
+          docinfo => true
+          schedule => "*/5 * * * *"
+          query => '{ "query": {     "bool": {
+        "must": [
+          {
+            "match_all": {}
+          }
+        ],
+        "filter": [
+          {
+            "match_phrase": {
+              "alert_info.status": {
+                "query": "solved"
+              }
+            }
+          }
+        ],
+        "should": [],
+        "must_not": [{
+            "exists": {
+              "field": "alert_solvedtime"
+            }
+          }]
+      }
+  }, "sort": [ "_doc" ] }'
+      }
+  }
+  filter {
+          ruby {
+                  code => "event.set('alert_solvedtime', Time.now());"
+          }
+  }
+  output {
+      elasticsearch {
+          hosts => "http://localhost:9200"
+          user => logserver
+          password => logserver
+          action => "update"
+          document_id => "%{[@metadata][_id]}"
+          index => "%{[@metadata][_index]}"
+      }
+  }
+```
+
+
+## Siem Module
+
+ITRS Log Analytics, through its built-in vulnerability detection module use of best practices defined in the CIS, allows to audit monitored environment for security vulnerabilities, misconfigurations, or outdated software versions. File Integrity Monitoring functionality allows for detailed monitoring and alerting of unauthorized access attempts to most sensitive data.
 
 SIEM Plan is a solution that provides a ready-made set of tools for compliance regulations such as CIS, PCI DSS, GDPR, NIST 800-53, ISO 27001.The system enables mapping of detected threats to Mitre ATT&CK tactics. By integrating with the MISP ITRS Log Analytics, allows to get real-time information about new threats on the network by downloading the latest IoC lists.
 
-To configure the Wazuh agents see the *Configuration* section.
+To configure the SIEM agents see the *Configuration* section.
+
+### Active response
+
+The SIEM agent automates the response to threats by running actions when these are detected. The agent has the ability to block network connections, stop running processes, and delete malicious files, among other actions. In addition, it can also run customized scripts developed by the user (e.g., Python, Bash, or PowerShell).
+
+To use this feature, users define the conditions that trigger the scripted actions, which usually involve threat detection and assessment. For example, a user can use log analysis rules to detect an intrusion attempt and an IP address reputation database to assess the threat by looking for the source IP address of the attempted connection.
+
+In the scenario described above, when the source IP address is recognized as malicious (low reputation), the monitored system is protected by automatically setting up a firewall rule to drop all traffic from the attacker. Depending on the active response, this firewall rule is temporary or permanent.
+
+On Linux systems, the Wazuh agent usually integrates with the local Iptables firewall for this purpose. On Windows systems, instead, it uses the null routing technique (also known as blackholing). Below you can find the configuration to define two scripts that are used for automated connection blocking:
+
+```xml
+    <command>
+      <name>firewall-drop</name>
+      <executable>firewall-drop</executable>
+      <timeout_allowed>yes</timeout_allowed>
+    </command>
+```
+
+```xml
+    <command>
+      <name>win_route-null</name>
+      <executable>route-null.exe</executable>
+      <timeout_allowed>yes</timeout_allowed>
+    </command>
+```
+
+On top of the defined commands, active responses set the conditions that need to be met to trigger them. Below is an example of a configuration that triggers the ``firewall-drop`` command when the log analysis rule ``100100`` is matched.
+
+```xml
+    <active-response>
+      <command>firewall-drop</command>
+      <location>local</location>
+      <rules_id>100100</rules_id>
+      <timeout>60</timeout>
+    </active-response>
+```
+
+In this case, rule ``100100`` is used to look for alerts where the source IP address is part of a well-known IP address reputation database.
+
+```xml
+   <rule id="100100" level="10">
+     <if_group>web|attack|attacks</if_group>
+     <list field="srcip" lookup="address_match_key">etc/lists/blacklist-alienvault</list>
+     <description>IP address found in AlienVault reputation database.</description>
+   </rule>
+```
+
+Below you can find a screenshot with two SIEM alerts: one that is triggered when a web attack is detected trying to exploit a PHP server vulnerability, and one that informs that the malicious actor has been blocked.
+
+![](/media/media/image240.png)
 
 ## Tenable and Qualisis Integration
 
@@ -7854,3 +7966,33 @@ Qualys Guard and Tenable.sc is vulnerability management tools, which make a scan
 ![](/media/media/image166.png)
 
 To configure Qulays or Tenable.sc see the *Configuration* section.
+
+## UBA
+
+The UBA module enables premium features of ITRS Log Analytics SIEM Plan. This cybersecurity approach helps analytics to discover threads in user behaviour. Module tracks user actions and scans common behaviour patterns. With UBA system provides deep knowledge of daily trends in user actions enabling SOC teams to detect any abnormal and suspicious activities. UBA differs a lot from regular SIEM approach based on logs analytics in time. The module focus on user actions and not the logs itself. Every user is identified as an entity in the system and its behaviour describes its work. UBA provide new data schema that mark each user action over time. Underlying UBA search engine analyse incoming data in order to identify log corresponding to user action. We leave the log for SIEM use cases, but incoming data is associated with a user action categories. New data model stores actions for each users and mark them down as metadata stored in individual index. Once tracking is done, SOC teams can investigate patterns for single action among many users or many actions for a single user. This unique approach creates an activity map for everyone working in the organization. Created dataset is stored in time. All actions can be analysed for understanding the trend and comparing it with historical profile. UBA is designed to give information about the common type of action that user performs and allows to identify specific time slots for each. Any differences noted, abnormal occurances of an event can be a subject of automatic alerts.
+UBA comes with defined dashboards which shows discovered actions and metrics for them.
+
+![](/media/media/image238.png)
+
+It is easy to filter presented data with single username or a group of users using query syntax. With help of saved searches SOC can create own outlook to stay focused on users at high risk of an attack.
+
+ITRS Log Analytics is made for working with data. UBA gives new analytics approach, but what is more important it brings new metrics that we can work with. Why not to use The Intelligence of ITRS Log Analytics to calculate forecast for each action over single user or entire organization. 
+Working with UBA greatly enlarge security analytics scope. 
+
+## BCM Remedy
+
+ITRS Log Analytics creates incidents that require handling based on notifications from the Alert module. This can be done, for example, in the BMC Remedy system using API requests. 
+
+BMC Remedy configuration details: [https://docs.bmc.com/docs/ars91/en/bmc-remedy-ar-system-rest-api-overview-609071509.html](https://docs.bmc.com/docs/ars91/en/bmc-remedy-ar-system-rest-api-overview-609071509.html) .
+
+To perform this incident notification in an external system.  You need to select in the configuration of the alert rule "Alert Method" "Command" and in the "Path to script/command" field enter the correct request.
+
+![](/media/media/image239.png)
+
+It is possible to close the incident in the external system using a parameter added to the alert rule.
+
+```yaml
+  #Recovery definition:
+  recovery: true
+  recovery_command: "mail -s 'Recovery Alert for rule RULE_NAME' user@example.com < /dev/null"
+```

@@ -30,6 +30,8 @@ The installation process:
 
 - unpack the archive containing the installer
 `tar xjf itrs-log-analytics-${product-version}.x.x86_64.tar.bz2`
+- unpack the archive containing the SIEM installer (only in SIEM plan)
+`tar xjf itrs-log-analytics-siem-plan-${product-version}.x.x86_64.tar.bz2`
 - copy license to installation directory
 `cp es_*.license install/`
 - go to the installation directory (you can run install.sh script from any location)
@@ -263,6 +265,20 @@ To update bad reputation lists and to create `.blacklists` index, you have to ru
   health status index       uuid                   pri rep docs.count docs.deleted store.size pri.store.size
   green  open   .blacklists Mld2Qe2bSRuk2VyKm-KoGg   1   0      76549            0      4.7mb          4.7mb
   ```
+
+### Web Application Firewall requriments
+
+The ITRS Log Analytics GUI requires the following request parameters to be allowed in WAF:
+
+ - URI Length: 2048 characters,
+ - Cookie Number In Request: 16,
+ - Header Number In Request: 50,
+ - Request Header Name Length: 1024 characters,
+ - Request Header Value Length: 4096 characters,
+ - URL Parameter Name Length: 1024 characters,
+ - URL Parameter Value Length: 4096 characters,
+ - Request Header Length: 8192 bytes,
+ - Request Body Length: 67108864 bytes.
 
 ## Docker support
 

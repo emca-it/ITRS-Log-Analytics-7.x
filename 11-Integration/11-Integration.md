@@ -1325,7 +1325,7 @@ Componens:
 
 ## Google Cloud Platform
 
-The ITRS Log Analytics accepts data from the Google Cloud Platform using the Pub/Sub service. Pub/Sub is used for streaming analytics and data integration pipelines to ingest and distribute data. It's equally effective as a messaging-oriented middleware for service integration or as a queue to parallelize tasks. https://cloud.google.com/pubsub/docs/overview
+The ITRS Log Analytics accepts data from the Google Cloud Platform using the Pub/Sub service. Pub/Sub is used for streaming analytics and data integration pipelines to ingest and distribute data. It's equally effective as a messaging-oriented middleware for service integration or as a queue to parallelize tasks. [https://cloud.google.com/pubsub/docs/overview](https://cloud.google.com/pubsub/docs/overview)
 
 To fetch events from the GCP service add the following condition to the Logstash configuration file:
 
@@ -1369,11 +1369,11 @@ To fetch events from the GCP service add the following condition to the Logstash
   }
 ```
 
-Authentication to the Pub/Sub service must be done with a private key: [](https://cloud.google.com/iam/docs/creating-managing-service-account-keys#creating)
+Authentication to the Pub/Sub service must be done with a private key: [https://cloud.google.com/iam/docs/creating-managing-service-account-keys#creating](https://cloud.google.com/iam/docs/creating-managing-service-account-keys#creating)
 
 
 ## F5 
-The ITRS Log Analytics accepts data from the F5 system using the SYSLOG protocol. The F5 configuration procedure is as follows:  https://support.f5.com/csp/article/K13080 
+The ITRS Log Analytics accepts data from the F5 system using the SYSLOG protocol. The F5 configuration procedure is as follows:  [https://support.f5.com/csp/article/K13080](https://support.f5.com/csp/article/K13080)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -1409,7 +1409,7 @@ Using the assigned tag, the documents is send to the appropriate index:
 
 ## Aruba Devices
 
-The ITRS Log Analytics accepts data from the Aruba Devices system using the SYSLOG protocol. The Aruba Switches configuration procedure is as follows:  https://community.arubanetworks.com/browse/articles/blogviewer?blogkey=80765a47-fe42-4d69-b500-277217f5312e
+The ITRS Log Analytics accepts data from the Aruba Devices system using the SYSLOG protocol. The Aruba Switches configuration procedure is as follows:  [https://community.arubanetworks.com/browse/articles/blogviewer?blogkey=80765a47-fe42-4d69-b500-277217f5312e](https://community.arubanetworks.com/browse/articles/blogviewer?blogkey=80765a47-fe42-4d69-b500-277217f5312e)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -1445,7 +1445,7 @@ Using the assigned tag, the documents is send to the appropriate index:
 
 ## Sophos Central
 
-The ITRS Log Analytics accepts data from the Sophos Central system using the API interface. The Sophos Central configuration procedure is as follows: https://github.com/sophos/Sophos-Central-SIEM-Integration
+The ITRS Log Analytics accepts data from the Sophos Central system using the API interface. The Sophos Central configuration procedure is as follows: [https://github.com/sophos/Sophos-Central-SIEM-Integration](https://github.com/sophos/Sophos-Central-SIEM-Integration)
 
 Pipeline configuration in Logstash collector:
 
@@ -1491,8 +1491,12 @@ Example of `config.ini` file:
    state_file_path = siem_sophos.json
 ```
 
+The ITRS Log Analytics can make automatic configuration changes via the API in Sophos E-mail Appliance, such as: adding a domain to the blocked domain list. This is done by using the `command` alert method and entering the correct API request in the `Path to script/command` field.
+
+![](/media/media/image241.png)
+
 ## FreeRadius
-The ITRS Log Analytics accepts data from the FreeRadius system using the SYSLOG protocol. The FreeRadius configuration procedure is as follows:  https://wiki.freeradius.org/config/Logging
+The ITRS Log Analytics accepts data from the FreeRadius system using the SYSLOG protocol. The FreeRadius configuration procedure is as follows:  [https://wiki.freeradius.org/config/Logging](https://wiki.freeradius.org/config/Logging)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -1525,7 +1529,7 @@ Using the assigned tag, the documents is send to the appropriate index:
    ```
 
 ## Microsoft Advanced Threat Analytics
-The ITRS Log Analytics accepts data from the Advanced Threat Analytics  system using the SYSLOG protocol with message in CEF format. The Advanced Threat Analytics  configuration procedure is as follows: https://docs.microsoft.com/pl-pl/advanced-threat-analytics/cef-format-sa
+The ITRS Log Analytics accepts data from the Advanced Threat Analytics  system using the SYSLOG protocol with message in CEF format. The Advanced Threat Analytics  configuration procedure is as follows: [https://docs.microsoft.com/pl-pl/advanced-threat-analytics/cef-format-sa](https://docs.microsoft.com/pl-pl/advanced-threat-analytics/cef-format-sa)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -1624,7 +1628,8 @@ Using the assigned tag, the documents is send to the appropriate index:
    ```
 
 ## CheckPoint Firewalls
-The ITRS Log Analytics accepts data from the CheckPoint Firewalls system using the SYSLOG protocol. The CheckPoint Firewalls configuration procedure is as follows: https://sc1.checkpoint.com/documents/SMB_R80.20/AdminGuides/Locally_Managed/EN/Content/Topics/Configuring-External-Log-Servers.htm?TocPath=Appliance%20Configuration%7CLogs%20and%20Monitoring%7C_____3
+
+The ITRS Log Analytics accepts data from the CheckPoint Firewalls system using the SYSLOG protocol. The CheckPoint Firewalls configuration procedure is as follows: [https://sc1.checkpoint.com/documents/SMB_R80.20/AdminGuides/Locally_Managed/EN/Content/Topics/Configuring-External-Log-Servers.htm?TocPath=Appliance%20Configuration%7CLogs%20and%20Monitoring%7C_____3](https://sc1.checkpoint.com/documents/SMB_R80.20/AdminGuides/Locally_Managed/EN/Content/Topics/Configuring-External-Log-Servers.htm?TocPath=Appliance%20Configuration%7CLogs%20and%20Monitoring%7C_____3)
 
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
@@ -1657,8 +1662,12 @@ Using the assigned tag, the documents is send to the appropriate index:
    }
    ```
 
+The ITRS Log Analytics can make automatic configuration changes via the API in Checkpoint firewalls such as adding a rule in the firewall. This is done using the `command` alert method and entering the correct API request in the `Path to script/command` field.
+
+![](/media/media/image241.png)
+
 ## WAF F5 Networks Big-IP
-The ITRS Log Analytics accepts data from the F5 system using the SYSLOG protocol. The F5 configuration procedure is as follows:  https://support.f5.com/csp/article/K13080 
+The ITRS Log Analytics accepts data from the F5 system using the SYSLOG protocol. The F5 configuration procedure is as follows:  [https://support.f5.com/csp/article/K13080](https://support.f5.com/csp/article/K13080)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -1694,7 +1703,7 @@ Using the assigned tag, the documents is send to the appropriate index:
 
 ## Infoblox DNS Firewall
 
-The ITRS Log Analytics accepts data from the Infoblox system using the SYSLOG protocol. The Infoblox configuration procedure is as follows:  https://docs.infoblox.com/space/NAG8/22252249/Using+a+Syslog+Server#Specifying-Syslog-Servers
+The ITRS Log Analytics accepts data from the Infoblox system using the SYSLOG protocol. The Infoblox configuration procedure is as follows:  [https://docs.infoblox.com/space/NAG8/22252249/Using+a+Syslog+Server#Specifying-Syslog-Servers](https://support.f5.com/csp/article/K13080)
 
 To identify and collect events from a Infoblox, is nessery to use Filebeat with `infoblox` module.
 To run Filebeat with infoblox moduel run following commnds:
@@ -1722,8 +1731,12 @@ and:
 filebeat test output
 ```
 
+The ITRS Log Analytics can make automatic configuration changes via an API in the Infoblox DNS Firewall, e.g.: automatic domain locking. This is done using the `command` alert method and entering the correct API request in the `Path to script/command` field.
+
+![](/media/media/image241.png)
+
 ## CISCO Devices
-The ITRS Log Analytics accepts data from the Cisco devices - router, switch, firewall and access point using the SYSLOG protocol. The Cisco devices configuration procedure is as follows: https://www.ciscopress.com/articles/article.asp?p=426638&seqNum=3
+The ITRS Log Analytics accepts data from the Cisco devices - router, switch, firewall and access point using the SYSLOG protocol. The Cisco devices configuration procedure is as follows: [https://www.ciscopress.com/articles/article.asp?p=426638&seqNum=3](https://support.f5.com/csp/article/K13080)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -1811,6 +1824,14 @@ Using the assigned tag, the documents is send to the appropriate index:
    }
    ```
 
+If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
+
+```yml
+processors:
+  - add_host_metadata: 
+      netinfo.enabled: true
+```
+
 ## AIX Systems
 The ITRS Log Analytics accepts data from the AIX systems using the SYSLOG protocol.
 
@@ -1846,11 +1867,11 @@ Using the assigned tag, the documents is send to the appropriate index:
 
 ## Microsoft Windows DNS, DHCP Service
 
-The ITRS Log Analytics accepts data from the Microsoft DNS and DHCP services using the Filebeat agent. Servers
+The ITRS Log Analytics accepts data from the Microsoft DNS and DHCP services using the Filebeat agent.
 
-To identify and collect events from Microsoft DNS and DHCP services, is nessery to set correct path do log files.
+To identify and collect events from Microsoft DNS and DHCP services, is nessery to set correct path do logs in Filebeat configuration file.
 
-Configure output section in `/etc/filebat/filebeat.yml` file:
+Configure output section in `C:\Program Files (x86)\filebeat\filebeat.yml` file:
 
 ```yml
 filebeat.inputs:
@@ -1875,3 +1896,872 @@ and:
 ```bash
 filebeat test output
 ```
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+
+If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
+
+```yml
+processors:
+  - add_host_metadata: 
+      netinfo.enabled: true
+```
+
+## Microsoft IIS Service
+
+The ITRS Log Analytics accepts data from the Microsoft IIS services using the Filebeat agent.
+
+To identify and collect events from Microsoft IIS services, is nessery to set correct path do logs in Filebeat configuration file.
+
+Configure output section in `C:\Program Files (x86)\filebeat\filebeat.yml` file:
+
+```yml
+filebeat.inputs:
+- type: log
+  paths:
+    - c:\\Path_to_IIS_logs\*.log
+```
+
+```yml
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
+```
+
+Test the configuration:
+
+```bash
+filebeat test config
+```
+
+and:
+
+```bash
+filebeat test output
+```
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+
+If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
+
+```yml
+processors:
+  - add_host_metadata: 
+      netinfo.enabled: true
+```
+
+## Apache Service
+
+The ITRS Log Analytics accepts data from the Linux Apache services using the Filebeat agent.
+
+To identify and collect events from Linux Apache services, is nessery to set correct path do logs in Filebeat configuration file.
+
+Configure output section in `/etc/filebat/filebeat.yml` file:
+
+```yml
+filebeat.inputs:
+- type: log
+  paths:
+    - /var/log/apache/*.log
+```
+
+```yml
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
+```
+
+Test the configuration:
+
+```bash
+filebeat test config
+```
+
+and:
+
+```bash
+filebeat test output
+```
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+
+If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
+
+```yml
+processors:
+  - add_host_metadata: 
+      netinfo.enabled: true
+```
+
+## Microsoft Exchange
+
+The ITRS Log Analytics accepts data from the Microsoft Exchange services using the Filebeat agent.
+
+To identify and collect events from Microsoft Exchange services, is nessery to set correct path do logs in Filebeat configuration file.
+
+Configure output section in `C:\Program Files (x86)\filebeat\filebeat.yml` file:
+
+```yml
+filebeat.inputs:
+- type: log
+  paths:
+    - c:\\Path_to_Exchange_logs\*.log
+```
+
+```yml
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
+```
+
+Test the configuration:
+
+```bash
+filebeat test config
+```
+
+and:
+
+```bash
+filebeat test output
+```
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+
+If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
+
+```yml
+processors:
+  - add_host_metadata: 
+      netinfo.enabled: true
+```
+
+### Microsoft Exchange message tracking
+
+The message tracking log is a detailed record of all activity as mail flows through the transport pipeline on Mailbox servers and Edge Transport servers. You can use message tracking for message forensics, mail flow analysis, reporting, and troubleshooting.
+
+By default, Exchange uses circular logging to limit the message tracking log based on file size and file age to help control the hard disk space that's used by the log files. To configure the message tracking log, see the documentation: [https://docs.microsoft.com/en-us/exchange/mail-flow/transport-logs/configure-message-tracking?view=exchserver-2019](https://docs.microsoft.com/en-us/exchange/mail-flow/transport-logs/configure-message-tracking?view=exchserver-2019)
+
+Configure output section in `C:\Program Files (x86)\filebeat\filebeat.yml` file:
+
+```yml
+filebeat.inputs:
+- type: log
+  paths:
+    - "%ExchangeInstallPath%TransportRoles\Logs\MessageTracking\*"
+```
+
+```yml
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
+```
+
+Test the configuration:
+
+```bash
+filebeat test config
+```
+
+and:
+
+```bash
+filebeat test output
+```
+If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
+
+```yml
+processors:
+  - add_host_metadata: 
+      netinfo.enabled: true
+```
+
+## Microsoft AD, Radius, Network Policy Server
+
+The ITRS Log Analytics accepts data from the Active Directory, Radius, Network Policy Server services using the Winlogbeat agent.
+
+To identify and collect events from Active Directory, Radius, Network Policy Server services, is nessery to set correct path do logs in Winlogbeat configuration file.
+
+Configure output section in `C:\Program Files (x86)\winlogbeat\winlogbeat.yml` file:
+
+```yml
+winlogbeat.event_logs:
+  - name: Application
+
+  - name: System
+
+  - name: Security
+```
+
+```yml
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
+```
+
+Test the configuration:
+
+```bash
+winlogbeat test config
+```
+
+and:
+
+```bash
+winlogbeat test output
+```
+The ITRS Log Analytics save collected data in `winlogbeat-*` index pattern and its available to review in the Discover module.
+
+If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
+
+```yml
+processors:
+  - add_host_metadata: 
+      netinfo.enabled: true
+```
+
+## Microsoft MS SQL Server
+
+The ITRS Log Analytics accepts data from the Microsoft MS SQL Server services using the Filebeat agent.
+
+To identify and collect events from Microsoft MS SQL Server services, is nessery to set correct path do logs in Filebeat configuration file.
+
+Configure output section in `C:\Program Files (x86)\filebeat\filebeat.yml` file:
+
+```yml
+filebeat.inputs:
+- type: log
+  paths:
+    - "C:\Program Files\Microsoft SQL Server\MSSQL10_50.SQL\MSSQL\Log\*LOG*"
+```
+
+```yml
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
+```
+
+Test the configuration:
+
+```bash
+filebeat test config
+```
+
+and:
+
+```bash
+filebeat test output
+```
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+
+If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
+
+```yml
+processors:
+  - add_host_metadata: 
+      netinfo.enabled: true
+```
+
+## MySQL Server
+
+The ITRS Log Analytics accepts data from the MySQL Server services using the Filebeat agent.
+
+To identify and collect events from MySQL Server services, is nessery to set correct path do logs in Filebeat configuration file.
+
+Configure output section in `/etc/filebeat/filebeat.yml` file:
+
+```yml
+filebeat.inputs:
+- type: log
+  paths:
+    - /var/log/mysql/*.log
+```
+
+```yml
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
+```
+
+Test the configuration:
+
+```bash
+filebeat test config
+```
+
+and:
+
+```bash
+filebeat test output
+```
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+
+If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
+
+```yml
+processors:
+  - add_host_metadata: 
+      netinfo.enabled: true
+```
+
+## Oracle Database Server
+
+The ITRS Log Analytics accepts data from the Oracle Database Server services using the Filebeat agent.
+
+To identify and collect events from Oracle Database Server services, is nessery to set correct path do logs in Filebeat configuration file.
+
+Configure output section in `/etc/filebeat/filebeat.yml` file:
+
+```yml
+filebeat.inputs:
+- type: log
+  paths:
+    - /var/log/oracle/*.xml
+```
+
+```yml
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
+```
+
+Test the configuration:
+
+```bash
+filebeat test config
+```
+
+and:
+
+```bash
+filebeat test output
+```
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+
+If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
+
+```yml
+processors:
+  - add_host_metadata: 
+      netinfo.enabled: true
+```
+
+## Postgres Database Server
+
+The ITRS Log Analytics accepts data from the Postgres Database Server services using the Filebeat agent.
+
+To identify and collect events from Oracle Postgres Server services, is nessery to set correct path do logs in Filebeat configuration file.
+
+Configure output section in `/etc/filebeat/filebeat.yml` file:
+
+```yml
+filebeat.inputs:
+- type: log
+  paths:
+    - //opt/postgresql/9.3/data/pg_log/*.log
+```
+
+```yml
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
+```
+
+Test the configuration:
+
+```bash
+filebeat test config
+```
+
+and:
+
+```bash
+filebeat test output
+```
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+
+If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
+
+```yml
+processors:
+  - add_host_metadata: 
+      netinfo.enabled: true
+```
+
+## VMware Platform
+
+The ITRS Log Analytics accepts data from the VMware platform using the SYSLOG protocol. The VMware vCenter Server configuration procedure is as follows:  [https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.monitoring.doc/GUID-FD51CE83-8B2A-4EBA-A16C-75DB2E384E95.html](https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.monitoring.doc/GUID-FD51CE83-8B2A-4EBA-A16C-75DB2E384E95.html)
+
+To identify events from a specific source, add the following condition to the Logstash configuration file:
+
+   ```conf
+   filter {
+        if "syslog" in [tags] {
+                if [host] == "$IP" {
+                    mutate {
+                        add_tag => ["vmware"]
+                    }
+                }
+        }
+   }
+   ```
+
+Where $IP is IP address of source system and each document coming from the address will be tagged with 'VMware vCenter Server'
+Using the assigned tag, the documents is send to the appropriate index:
+
+   ```conf
+   output {
+     if "vmware" in [tags] {
+       elasticsearch {
+         hosts => "https://localhost:9200"
+         ssl => true
+         ssl_certificate_verification => false
+         index => "vmware-%{+YYYY.MM.dd}"
+         user => "logstash"
+         password => "logstash"
+       }
+     }
+   }
+   ```
+
+## Nerwork Flows
+
+The ITRS Log Analytics has the ability to receive and process various types of network flows. For this purpose, the following input ports have been prepared:
+
+- IPFIX, Netflow v10 - 4739/TCP, 4739/UDP
+- NetFlow v5,9 - 2055/UDP
+- Sflow - 6343/UDP
+
+Example of inputs configuration:
+
+```conf
+  input {
+  udp {
+      port => 4739
+      codec => netflow {
+        ipfix_definitions => "/etc/logstash/netflow/definitions/ipfix.yaml"
+        versions => [10]
+        target => ipfix
+        include_flowset_id => "true"
+    }
+    type => ipfix
+    tags => ["ipfix", "v10", "udp"]
+    }
+    tcp {
+      port => 4739
+      codec => netflow {
+        ipfix_definitions => "/etc/logstash/netflow/definitions/ipfix.yaml"
+        versions => [10]
+        target => ipfix
+        include_flowset_id => "true"
+      }
+      type => ipfix
+      tags => ["ipfix", "v10", "tcp"]
+    }
+  }
+```
+
+```conf
+  input {
+    udp {
+      port => 2055
+      type => netflow
+      codec => netflow {
+        netflow_definitions => "/etc/logstash/netflow/definitions/netflow.yaml"
+        versions => [5,9]
+      }
+      tags => ["netflow"]
+    }
+  }
+```
+
+```conf
+  input {
+    udp {
+    port => 6343
+    type => sflow
+    codec => sflow
+    tags => ["sflow"]
+  }
+  }
+```
+
+## Citrix XenApp and XenDesktop
+
+This ITRS Log Analytics has the ability to acquire data from Citrix XenApp and XenDesktop. 
+
+An example command to enable Citrix Broker Service log to a file is as follows:
+
+  ```PowerShell
+  BrokerService.exe –Logfile "C:\XDLogs\Citrix Broker Service.log"
+  ```
+
+Or there is the possibility of extracting results, data from a report generated using the console:
+
+[https://docs.citrix.com/en-us/xenapp-and-xendesktop/7-15-ltsr/monitor/configuration-logging.html#generate-reports](https://docs.citrix.com/en-us/xenapp-and-xendesktop/7-15-ltsr/monitor/configuration-logging.html#generate-reports)
+
+The ITRS Log Analytics accepts data from Citrix XenApp and XenDesktop server using the Filebeat agent.
+
+To identify and collect events from Citrix XenApp and XenDesktop servers, you need to set the correct path to the logs in the Filebeat configuration file.
+
+Configure output section in `C:\Program Files (x86)\filebeat\filebeat.yml` file:
+
+```yml
+filebeat.inputs:
+- type: log
+  paths:
+    - "C:\XDLogs\Citrix Broker Service.log"
+```
+
+```yml
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
+```
+
+Test the configuration:
+
+```bash
+filebeat test config
+```
+
+and:
+
+```bash
+filebeat test output
+```
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+
+If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
+
+```yml
+processors:
+  - add_host_metadata: 
+      netinfo.enabled: true
+```
+
+## Sumologic Cloud SOAR
+
+The ITRS Log Analytics has the ability to forward detected alerts to *Sumologic Cloud SOAR*. To do this, select the "syslog" method in the alert definition and set the following parameters:
+
+  - Host
+  - Port
+  - Protocol
+  - Logging Level
+  - Facility
+
+![](/media/media/image237.png)
+
+ITRS Log Analytics has the ability to create security dashboards from data found in SOAR, such as statistics. It has the ability to create and configure master views from extracted SOAR data. 
+
+An example of an API request retrieving data:
+```bash
+  curl -X GET "https://10.4.3.202/incmansuite_ng/api/v2/kpi?output_set=Weekly%20summary&type=json" -H "accept: application/json" -H "Authorization: bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9. eyJpYXQiOjE2NTc3MTg2ODAsImp0aSI6IjdmMzg1ZDdhLTc1YjYtNGZmMC05YTdmLTVkMmNjYTjZjTQ0YiIsImlzcyI6IkluY01hbiA1LjMuMC4wIiwibmJmIjoxNjU3NzE4NjgwLCJleHAiOm51bGwsImRhdGEiOnsidXNlcklkIjoxfX0. pCJlM9hxj8VdavGuNfIuq1y5Dwd9kJT_UMyoRca_gUZjUXQ85nwEQZz_QEquE1rXTgVW9TO__gDNjY30r8yjoA" -k
+```
+Example of request response:
+
+```bash
+  [{"[INCIDENT] Created by": "System","[INCIDENT] Owner": "IncMan Administrator","[INCIDENT] Kind": "Forensic - Incident response","[INCIDENT] Status": "Open","[INCIDENT] Incident ID": "2022","[INCIDENT] Opening time": "07/15/22 10:47:11","[INCIDENT] Closing time":"","[INCIDENT] Category": "General","[INCIDENT] Type": "General, Incident Response","[OBSERVABLES] EMAIL":["adam@it.emca.pl"]},{"[INCIDENT] Created by": "System","[INCIDENT] Owner": "IncMan Administrator","[INCIDENT] Kind": "Forensic - Incident response","[INCIDENT] Status": "Open","[INCIDENT] Incident ID": "ENE-LOGS EVENTS FROM LOGSERVER 2022-07-15 08:23:00","[INCIDENT] Opening time": "07/15/22 10:23:01","[INCIDENT] Closing time":"","[INCIDENT] Category": "General","[INCIDENT] Type": "General, Intrusion attempt"},[{"[INCIDENT] Created by": "System","[INCIDENT] Owner": "IncMan Administrator","[INCIDENT] Kind": "Forensic - Incident response","[INCIDENT] Status": "Open","[INCIDENT] Incident ID": "ENE-LOGS EVENTS FROM LOGSERVER 2022-07-15 08:20: 49","[INCIDENT] Opening time": "07/15/22 10:20:50","[INCIDENT] Closing time":"","[INCIDENT] Category": "General","[INCIDENT] Type": "General, Intrusion attempt"}]]
+```
+
+Integration pipeline configuration:
+```conf
+input {
+  exec {
+     command => ""https://10.4.3.202/incmansuite_ng/api/v2/kpi?output_set=Weekly%20summary&type=json" -H "accept: application/json" -H "Authorization: bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9. eyJpYXQiOjE2NTc3MTg2ODAsImp0aSI6IjdmMzg1ZDdhLTc1YjYtNGZmMC05YTdmLTVkMmNjYTjZjTQ0YiIsImlzcyI6IkluY01hbiA1LjMuMC4wIiwibmJmIjoxNjU3NzE4NjgwLCJleHAiOm51bGwsImRhdGEiOnsidXNlcklkIjoxfX0. pCJlM9hxj8VdavGuNfIuq1y5Dwd9kJT_UMyoRca_gUZjUXQ85nwEQZz_QEquE1rXTgVW9TO__gDNjY30r8yjoA" -k"
+     interval => 86400
+   }
+}
+
+# optional
+filter {}
+
+output {
+  elasticsearch {
+    hosts => [ "http://localhost:9200" ]
+    index => "soar-%{+YYYY.MM}"
+    user => "logserver"
+    password => "logserver"
+  }
+}
+```
+## Microsfort System Center Operations Manager
+
+The ITRS Log Analytics has the ability to integrate with MS SCOM (System Center Operations Manager) monitoring systems to monitor metrics and service availability in the context of the end system user. 
+
+An example of the integration pipeline configuration with SCOM:
+
+
+```bash
+input {
+        # scom
+        jdbc {
+            jdbc_driver_library => "/usr/share/logstash/jdbc/mssql-jdbc-6.2.2.jre8.jar"
+            jdbc_driver_class => "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+            jdbc_connection_string => "jdbc:sqlserver://VB2010000302;databaseName=OperationsManagerDW2012;"
+            jdbc_user => "PerfdataSCOM"
+            jdbc_password => "${SCOM_PASSWORD}"
+            jdbc_default_timezone => "UTC"
+            statement_filepath => "/usr/share/logstash/plugin/query"
+            schedule => "*/5 * * * *"
+            sql_log_level => "warn"
+            record_last_run => "false"
+            clean_run => "true"
+            tags => "scom"
+            }
+}
+# optional filter section
+filter {}
+output {
+  if "scom" in [tags] {
+      elasticsearch {
+        hosts => [ "http://localhost:9200" ]
+        index => "scom-%{+YYYY.MM}"
+        user => "logstash"
+        password => "logstash"
+    }
+  }
+}
+```
+
+
+The SLQ query stored in `/usr/share/logstash/plugin/query` file:
+
+```sql
+  #query
+
+  SELECT
+        Path,
+        FullName,
+        ObjectName,
+        CounterName,
+        InstanceName,
+        SampleValue AS Value,
+        DateTime
+  FROM Perf.vPerfRaw pvpr WITH (NOLOCK)
+  INNER JOIN vManagedEntity vme WITH (NOLOCK)
+        ON pvpr.ManagedEntityRowId = vme.ManagedEntityRowId
+  INNER JOIN vPerformanceRuleInstance vpri WITH (NOLOCK)
+        ON pvpr.PerformanceRuleInstanceRowId = vpri.PerformanceRuleInstanceRowId
+  INNER JOIN vPerformanceRule vpr WITH (NOLOCK)
+        ON vpr.RuleRowId = vpri.RuleRowId
+  WHERE ObjectName IN (
+  'AD FS',
+  'AD Replication',
+  'Cluster Disk',
+  'Cluster Shared Volume',
+  'DirectoryServices',
+  'General Response',
+  'Health Service',
+  'LogicalDisk',
+  'Memory',
+  'Network Adapter',
+  'Network Interface',
+  'Paging File',
+  'Processor',
+  'Processor Information',
+  'Security System-Wide Statistics',
+  'SQL Database',
+  'System',
+  'Web Service'
+  )
+  AND CounterName IN (
+  'Artifact resolution Requests',
+  'Artifact resolution Requests/sec',
+  'Federation Metadata Requests',
+  'Federation Metadata Requests/sec',
+  'Token Requests',
+  'Token Requests/sec',
+  'AD Replication Queue',
+  'Replication Latency',
+  'Free space / MB',
+  'Free space / Percent',
+  'Total size / MB',
+  'ATQ Outstanding Queued Requests',
+  'ATQ Request Latency',
+  'ATQ Threads LDAP',
+  'ATQ Threads Total',
+  'Active Directory Last Bind',
+  'Global Catalog Search Time',
+  'agent processor utilization',
+  '% Free Space',
+  'Avg. Disk Queue Length',
+  'Avg. Disk sec/Read',
+  'Avg. Disk sec/Write',
+  'Current Disk Queue Length',
+  'Disk Bytes/sec',
+  'Disk Read Bytes/sec',
+  'Disk Reads/sec',
+  'Disk Write Bytes/sec',
+  'Disk Writes/sec',
+  'Free Megabytes',
+  'Bytes Total/sec',
+  'Bytes Received/sec',
+  'Bytes Sent/sec',
+  'Bytes Total/sec',
+  'Current Bandwidth',
+  '% Processor Time',
+  '% Usage',
+  '% Committed Bytes In Use',
+  'Available Bytes',
+  'Available MBytes',
+  'Cache Bytes',
+  'Cache Faults/sec',
+  'Committed Bytes',
+  'Free System Page Table Entries',
+  'Page Reads/sec',
+  'Page Writes/sec',
+  'Pages/sec',
+  'PercentMemoryUsed',
+  'Pool Nonpaged Bytes',
+  'Pool Paged Bytes',
+  'KDC AS Requests',
+  'KDC TGS Requests',
+  'Kerberos Authentications',
+  'NTLM Authentications',
+  'DB Active Connections',
+  'DB Active Sessions',
+  'DB Active Transactions',
+  'DB Allocated Free Space (MB)',
+  'DB Allocated Size (MB)',
+  'DB Allocated Space (MB)',
+  'DB Allocated Space Used (MB)',
+  'DB Available Space Total (%)',
+  'DB Available Space Total (MB)',
+  'DB Avg. Disk ms/Read',
+  'DB Avg. Disk ms/Write',
+  'DB Disk Free Space (MB)',
+  'DB Disk Read Latency (ms)',
+  'DB Disk Write Latency (ms)',
+  'DB Total Free Space (%)',
+  'DB Total Free Space (MB)',
+  'DB Transaction Log Available Space Total (%)',
+  'DB Transactions/sec',
+  'DB Used Space (MB)',
+  'Log Free Space (%)',
+  'Log Free Space (MB)',
+  'Log Size (MB)',
+  'Processor Queue Length',
+  'System Up Time',
+  'Connection Attempts/sec',
+  'Current Connections'
+  )
+
+  AND DateTime >= DATEADD(MI, -6, GETUTCDATE())
+```
+## MISP Integration
+
+Integration with MISP is divided into two parts, server side and client side.
+
+### Requirements
+
+1. Server side
+
+  - Prepare the MISP instance - you need an authorization key (go to Administration -> List Auth Keys -> Add authentication key)
+  - Complete the necessary information in the `misp_threat_lists_update.sh` script, in particular the variables:
+    - KEY (authentication key)
+    - MISP_URL (misp instance to connect)
+    - DEST (directory made available to the http server for output files)
+
+```bash
+#!/bin/bash
+DEST=/etc/logstash/lists
+IOC_USER=''
+IOC_PASS=''
+LOGSERVER_USER='logserver'
+LOGSERVER_PASS='logserver'
+LOGSERVER_HOST=127.0.0.1
+LOGSERVER_PORT=9200
+LOGSERVER_SSL=false
+REPOSITORY_URL=https://repository.energylogserver.pl
+
+
+# FILTER
+function prepare_blacklist() {
+	blacklist=$1
+	/bin/mv -f ${DEST}/misp_${blacklist}.blacklist ${DEST}/misp_${blacklist}-$(date +%s).blacklist
+	#/usr/bin/echo "#"`/usr/bin/date` > ${DEST}/misp_${blacklist}.yml
+	#/usr/bin/awk '{print $1}' ${DEST}/misp_${blacklist}-*.blacklist | /usr/bin/sed -r "s/(.*)/\"\1\": \""bad_${blacklist}"\"/" >> ${DEST}/misp_${blacklist}.yml
+	#/usr/bin/sort -u ${DEST}/misp_${blacklist}.yml -o ${DEST}/misp_${blacklist}.yml
+}
+
+# INPUT
+function update_blacklist() {
+	blacklist=$1
+	local CURL_STATUS=""
+	CURL_STATUS=$(/usr/bin/curl -w "%{http_code}\n" -sS -u "${IOC_USER}":"${IOC_PASS}" ${REPOSITORY_URL}/ioc/misp_${blacklist}.blacklist -o ${DEST}/misp_${blacklist}.blacklist)
+	if [ ${CURL_STATUS} == 200 ]
+	then
+		prepare_blacklist ${blacklist}
+	fi
+}
+
+update_blacklist domain
+update_blacklist email
+update_blacklist filename
+update_blacklist ip
+update_blacklist url
+update_blacklist filehash
+update_blacklist certhash
+update_blacklist regkey
+
+## OUTPUT
+if [ ${LOGSERVER_SSL} = true ]
+then
+	/usr/bin/curl -k -sS -u "${LOGSERVER_USER}":"${LOGSERVER_PASS}" -X POST "https://${LOGSERVER_HOST}:${LOGSERVER_PORT}/.blacklists/_delete_by_query" --connect-timeout 2 -H 'Content-Type: application/json' -d '{"query":{"bool":{"must":[{"range":{"@timestamp":{"lt":"now-5m/m"}}},{"term":{"tags":"misp_blacklist"}}]}}}' 2>&1 > /dev/null
+else
+	/usr/bin/curl -sS -u "${LOGSERVER_USER}":"${LOGSERVER_PASS}" -X POST "http://${LOGSERVER_HOST}:${LOGSERVER_PORT}/.blacklists/_delete_by_query" --connect-timeout 2 -H 'Content-Type: application/json' -d '{"query":{"bool":{"must":[{"range":{"@timestamp":{"lt":"now-5m/m"}}},{"term":{"tags":"misp_blacklist"}}]}}}' 2>&1 > /dev/null
+fi
+```
+ - Add the script to the schedule:
+
+```bash
+# crontab -e
+# 0 1 * * * /path/to/misp_threat_lists_update.sh
+```
+2. Clinet side
+
+ - Has access to the server repository
+ - Has logstash installed
+ - Complete the necessary information in the `misp_threat_lists.sh script`, in particular the variables:
+    - REPOSITORY_URL
+    - IOC_USER (if needed)
+    - IOC_PASS (if needed)
+
+```bash
+#!/bin/bash
+DEST=/etc/logstash/lists
+IOC_USER=''
+IOC_PASS=''
+LOGSERVER_USER='logserver'
+LOGSERVER_PASS='logserver'
+LOGSERVER_HOST=127.0.0.1
+LOGSERVER_PORT=9200
+LOGSERVER_SSL=false
+REPOSITORY_URL=https://repository.energylogserver.pl
+
+
+# FILTER
+function prepare_blacklist() {
+	blacklist=$1
+	/bin/mv -f ${DEST}/misp_${blacklist}.blacklist ${DEST}/misp_${blacklist}-$(date +%s).blacklist
+	#/usr/bin/echo "#"`/usr/bin/date` > ${DEST}/misp_${blacklist}.yml
+	#/usr/bin/awk '{print $1}' ${DEST}/misp_${blacklist}-*.blacklist | /usr/bin/sed -r "s/(.*)/\"\1\": \""bad_${blacklist}"\"/" >> ${DEST}/misp_${blacklist}.yml
+	#/usr/bin/sort -u ${DEST}/misp_${blacklist}.yml -o ${DEST}/misp_${blacklist}.yml
+}
+
+# INPUT
+function update_blacklist() {
+	blacklist=$1
+	local CURL_STATUS=""
+	CURL_STATUS=$(/usr/bin/curl -w "%{http_code}\n" -sS -u "${IOC_USER}":"${IOC_PASS}" ${REPOSITORY_URL}/ioc/misp_${blacklist}.blacklist -o ${DEST}/misp_${blacklist}.blacklist)
+	if [ ${CURL_STATUS} == 200 ]
+	then
+		prepare_blacklist ${blacklist}
+	fi
+}
+
+update_blacklist domain
+update_blacklist email
+update_blacklist filename
+update_blacklist ip
+update_blacklist url
+update_blacklist filehash
+update_blacklist certhash
+update_blacklist regkey
+
+## OUTPUT
+if [ ${LOGSERVER_SSL} = true ]
+then
+	/usr/bin/curl -k -sS -u "${LOGSERVER_USER}":"${LOGSERVER_PASS}" -X POST "https://${LOGSERVER_HOST}:${LOGSERVER_PORT}/.blacklists/_delete_by_query" --connect-timeout 2 -H 'Content-Type: application/json' -d '{"query":{"bool":{"must":[{"range":{"@timestamp":{"lt":"now-5m/m"}}},{"term":{"tags":"misp_blacklist"}}]}}}' 2>&1 > /dev/null
+else
+	/usr/bin/curl -sS -u "${LOGSERVER_USER}":"${LOGSERVER_PASS}" -X POST "http://${LOGSERVER_HOST}:${LOGSERVER_PORT}/.blacklists/_delete_by_query" --connect-timeout 2 -H 'Content-Type: application/json' -d '{"query":{"bool":{"must":[{"range":{"@timestamp":{"lt":"now-5m/m"}}},{"term":{"tags":"misp_blacklist"}}]}}}' 2>&1 > /dev/null
+fi
+```
+ - Activate pipeline blacklists in `/etc/logstash/pipelnes.yml`.

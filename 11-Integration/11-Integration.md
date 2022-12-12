@@ -2635,6 +2635,48 @@ The SLQ query stored in `/usr/share/logstash/plugin/query` file:
 
   AND DateTime >= DATEADD(MI, -6, GETUTCDATE())
 ```
+
+## JBoss
+
+The Energy Logserver accepts data from the JBoss platform using the Filebeat agent. Example configuration file for Filebeat:
+```
+filebeat:
+  prospectors:
+    -
+      paths:
+        - /var/log/messages
+        - /var/log/secure
+      input_type: log
+      document_type: syslog
+    -
+      paths:
+        - /opt/jboss/server/default/log/server.log
+      input_type: log
+      document_type: jboss_server_log
+      multiline:
+        pattern: "^[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}"
+        negate: true
+        match: after
+        max_lines: 5
+  registry_file: /var/lib/filebeat/registry
+output:
+  logstash:
+    hosts: ["10.1.1.10:5044"]
+    bulk_max_size: 1024
+    tls:
+      certificate_authorities: ["/etc/pki/tls/certs/logstash-forwarder.crt"]
+shipper:
+logging:
+  to_syslog: false
+  to_files: true
+  files:
+    path: /var/log/mybeat
+    name: mybeat
+    rotateeverybytes: 10485760 # = 10MB
+    keepfiles: 2
+  level: info
+```
+
 ## MISP Integration
 
 Integration with MISP is divided into two parts, server side and client side.

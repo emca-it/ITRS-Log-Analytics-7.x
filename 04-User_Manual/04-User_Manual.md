@@ -1115,6 +1115,16 @@ After you change password for one of the system account ( alert, intelligence, l
      	password => "new_password"
      }
      ```
+6. Account **License**
+
+   - Update file **/opt/license-service/license-service.conf**
+   ```
+   elasticsearch_connection:
+     hosts: ["127.0.0.1:9200"]
+
+     username: license
+     password: "new_license_password"
+   ```
 
 
 ### Module Access
@@ -1150,6 +1160,22 @@ Examples of implementation:
 5. Deleting the key:
 
    ![](/media/media/image212.png)
+   
+### Separate data from one index to different user groups
+
+We can Separate data from one index to different user groups using aliases. For example, in one index we have several tags:
+
+![](https://user-images.githubusercontent.com/42172770/209846991-ca27566d-1a57-4d45-b5ae-24ce24ed5c84.png)
+
+To separate the data, you must first set up an alias on the appropriate tag.
+
+![](https://user-images.githubusercontent.com/42172770/209850716-104762f8-4cb6-45dc-b651-287eacbf92d8.png)
+
+Then assume a pattern index on the above alias.
+Finally, we can assign the appropriate role to the new index pattern.
+
+![](https://user-images.githubusercontent.com/42172770/209851010-2dc583de-889b-4baf-bdc9-21cbaba820eb.png)
+
 
 ## Settings
 
@@ -1246,6 +1272,89 @@ based on one of the available algorithms (more on operation in the
 Intelligence chapter)
 - **Scheduler Account** - the scheduler module is associated with this
 account, which corresponds to, among others for generating reports
+
+### Restoration procedures
+
+#### Backing up
+
+The backup bash script is located on the hosts with Elasticsearch in location:
+```/usr/share/elasticsearch/utils/configuration-backup.sh```.
+The script is responsible for backing up the basic data in the Logserver system (these data are the system indexes found in Elasticsearch of those starting with a dot  '.'  in the name),  the configuration of the entire cluster, the set of templates used in the cluster and all the components.
+These components include the Logstash configuration located in ```/etc/logstash``` and Kibana configuration located in ```/etc/kibana```.
+All data is stored in the ```/tmp``` folder and then packaged using the ```/usr/bin/tar``` utility to ```tar.gz``` format with the exact date and time of execution in the target location, then the files from ```/tmp``` are deleted.
+
+crontab
+It is recommended to configure ```crontab```.
+- Before executing the following commands, you need to create a crontab file, set the path to backup and direct them there.
+
+In the below example, the task was configured on hosts with the Elasticsearch module on the root.
+```bash
+# crontab -l #Printing the Crontab file for the currently logged in user 
+0 1 * * * /bin/bash /usr/share/elasticsearch/utils/configuration-backup.sh
+```
+
+- The client-node host saves the backup in the /archive/configuration-backup/ folder.
+- Receiver-node  hosts save the backup in the /root/backup/ folder.
+
+#### Restoration from backup
+
+To restore the data, extract the contents of the created archive, e.g.
+
+```bash
+# tar -xzf /archive/configuration-backup/backup_name-000000-00000.tar.gz -C /tmp/restore
+```
+
+Then display the contents and select the files to restore (this will look similar to the following):
+
+```bash
+# ls -al /tmp/restore/00000-11111/
+drwxr-xr-x 2 root root    11111 01-08 10:29 .
+drwxr-xr-x 3 root root     2222 01-08 10:41 ..
+-rw-r--r-- 1 root root  3333333 01-08 10:28 .file1.json
+-rw-r--r-- 1 root root     4444 01-08 10:28 .file_number2.json
+-rw-r--r-- 1 root root     5555 01-08 10:29 .file3.json
+-rw-r--r-- 1 root root      666 01-08 10:29 .file4.json
+-rw-r--r-- 1 root root     7777 01-08 10:29 .file5.json
+-rw-r--r-- 1 root root       87 01-08 10:29 .file6.json
+-rw-r--r-- 1 root root        1 01-08 10:29  file6.json
+-rw-r--r-- 1 root root       11 01-08 10:29 .file7.json
+-rw-r--r-- 1 root root     1234 01-08 10:29  file8.tar.gz
+-rw-r--r-- 1 root root     0000 01-08 10:29 .file9.json
+```
+
+To restore any of the system indexes, e.g. ```.security```, execute the commands:
+
+```bash
+# /usr/share/kibana/elasticdump/elasticdump  --output="http://logserver:password@127.0.0.1:9200/.kibana" --input="/root/restore/20210108-102848/.security.json" –type=data
+# /usr/share/kibana/elasticdump/elasticdump  --output="http://logserver:password@127.0.0.1:9200/.kibana" --input="/root/restore/20210108-102848/.security_mapping.json" --type=mapping
+```
+
+In order to restore any of the configurations e.g. ```kibana/logstash/elastic/wazuh```, follow the steps below:
+
+```bash
+# systemctl stop kibana
+# tar -xvf /tmp/restore/20210108-102848/kibana_conf.tar.gz -C / --overwrite
+```
+
+```bash
+# systemctl start kibana
+```
+
+To restore any of the templates, perform the following steps for each template:
+
+- Select from the ```templates.json``` file the template you are interested in, omitting its name
+- Move it to a new ```json``` file, e.g. ```test.json```
+- Load by specifying the name of the target template in the link
+
+```bash
+# curl -s -XPUT -H 'Content-Type: application/json' -u logserver '127.0.0.1:9200/_template/test -d@/root/restore/20210108-102848/test.json
+```
+
+To restore the cluster settings, execute the following command:
+
+```bash
+# curl -s -XPUT -H 'Content-Type: application/json' -u logserver '127.0.0.1:9200/_cluster/settings' -d@/root/restore/20210108-102848/cluster_settings.json
+```
 
 ##  Index management
 
@@ -1522,6 +1631,267 @@ actions:
       setting: enable
       wait_for_completion: True
       disable_action: True
+```
+
+### Preinstalled actions
+
+#### Close-Daily
+
+This action closes the selected indices olders older than 93 days and optionally deletes associated aliases beforehand. Example if its today 21 december this action it will close or optionally delete every index olders like 30 september the same year, action start everyday 01:00 AM.
+
+`Action type`:   CLOSE   
+`Action name`:   Close-Daily   
+`Action Description (optional)`:   Close daily indices older than 90 days   
+`Schedule Cron Pattern` :   0 1 \* \* \*   
+`Delete Aliases`:   enabled   
+`Skip Flush` :   disabled   
+`Ignore Empty List`:   enabled   
+`Ignore Sync Failures` :   enabled   
+`Pattern filter kind` :   Timestring   
+`Pattern filter value` :   %Y.%m$     
+`Index age` :   93 days   
+`Empty indices filter` :   disable
+
+#### Close-Monthly
+
+This action closes the selected indices olders older than 93 days (3 months)and optionally deletes associated aliases beforehand.  If its today  is 21 december, this action it will close or optionally delete every index olders then  oktober the same year, action start everyday 01:00 AM. 
+
+`Action type`:    CLOSE  
+`Action name`:     Close-Daily 
+`Action Description (optional)`:     Close daily indices older than 93 days 
+`Schedule Cron Pattern`:    0 1 * * * 
+`Delete Aliases`:     enabled 
+`Skip Flush`:    disabled  
+`Ignore Empty List`:   enabled  
+`Ignore Sync Failures`:    enabled 
+`Pattern filter kind`:    Timestring 
+`Pattern filter value`:   %Y.%m$    
+`Index age`:     93 days 
+`Empty indices filter`:    disable 
+
+#### Disable-Refresh-Older-Than-Days
+
+This action disables the daily refresh of indices older than 2 days. the action is performed daily at 01:00.  
+
+`Action type`:    CUSTOM 
+`Action name`:    Disable-Refresh-Older-Than-Days 
+`Schedule Cron Pattern`:    0 1 * * * 
+
+`YAML`:
+
+```
+actions:
+  '1':
+    action: index_settings
+    description: Disable refresh for older daily indices
+    options:
+      index_settings:
+        index:
+          refresh_interval: -1
+      ignore_unavailable: False
+      ignore_empty_list: true
+      preserve_existing: False
+    filters:
+      - filtertype: pattern
+        kind: timestring
+        value: '%Y.%m.%d$'
+      - filtertype: age
+        source: creation_date
+        direction: older
+        unit: days
+        unit_count: 2
+```
+
+#### Disable-Refresh-Older-Than-Month
+
+This action force the daily  merge of indices older than one month. The action is performed daily at 01:00.
+
+`Action type`:    CUSTOM
+`Action name`:    Disable-Refresh-Older-Than-Month
+`Schedule Cron Pattern`:    0 1 * * *
+
+`YAML`:
+
+```
+actions:
+  '1':
+    action: index_settings
+    description: Disable refresh for older monthly indices
+    options:
+      index_settings:
+        index:
+          refresh_interval: -1
+      ignore_unavailable: False
+      ignore_empty_list: true
+      preserve_existing: False
+    filters:
+      - filtertype: pattern
+        kind: timestring
+        value: '%Y.%m$'
+      - filtertype: age
+        source: creation_date
+        direction: older
+        unit: days
+        unit_count: 32
+
+```
+
+#### Force-Merge-Older-Than-Days
+
+This action force the daily  merge of indices older than two days. The action is performed daily at 01:00.
+
+`Action type`:    CUSTOM
+`Acticn name`:    Force-Merge-Older-Than-Days
+`Schedule Cron Pattern`:    0 1 * * *
+
+`YAML`:
+
+```
+actions:
+  '1':
+    action: forcemerge
+    description: Force merge on older daily indices
+    options:
+      max_num_segments: 1
+      ignore_empty_list: true
+      continue_if_exception: false
+      delay: 60
+    filters:
+      - filtertype: pattern
+        kind: timestring
+        value: '%Y.%m.%d$'
+      - filtertype: age
+        source: creation_date
+        direction: older
+        unit: days
+        unit_count: 2
+      - filtertype: forcemerged
+        max_num_segments: 1
+        exclude: True
+```
+
+#### Force-Merge-Older-Than-Months
+
+This action force the daily  merge of indices older than one month. The action is performed daily at 01:00.
+
+`Action type`:    CUSTOM
+`Acticn name`:    Force-Merge-Older-Than-Months
+`Schedule Cron Pattern`:    0 1 * * *
+
+`YAML`:
+
+```
+actions:
+  '1':
+    action: forcemerge
+    description: Force merge on older monthly indices
+    options:
+      max_num_segments: 1
+      ignore_empty_list: true
+      continue_if_exception: false
+      delay: 60
+    filters:
+      - filtertype: pattern
+        kind: timestring
+        value: '%Y.%m$'
+      - filtertype: age
+        source: creation_date
+        direction: older
+        unit: days
+        unit_count: 32
+      - filtertype: forcemerged
+        max_num_segments: 1
+        exclude: True
+
+```
+
+#### Logtrail-default-delete
+
+This action leave only two last indices from each logtrail rollover index ( allows for up to 10GB data).The action is performed daily at 03:30.
+
+`Action type`:   CUSTOM 
+`Action name`:   Logtrail-default-delete 
+`Schedule Cron Pattern`:   30 3 * * *
+
+`YAML`:
+
+```
+actions:
+  '1':
+    action: delete_indices
+    description: >-
+      Leave only two last indices from each logtrail rollover index - allows for up to
+      10GB data.
+    options:
+      ignore_empty_list: true
+      continue_if_exception: true
+    filters:
+      - filtertype: count
+        count: 2
+        pattern: '^logtrail-(.*?)-\d{4}.\d{2}.\d{2}-\d+$'
+        reverse: true
+
+
+```
+
+#### Logtrail-default-rollover
+
+This action rollover default Logtrail indices .The action is performed every 5 minute. 
+
+`Action type`:   CUSTOM
+`Action name`:   Logtrail-default-rollover
+`Schedule Cron Pattern`:   5 * * * *
+
+`YAML`:
+
+```
+actions:
+  '1':
+    action: rollover
+    description: >-
+      This action works on default logtrail indices. It is recommended to enable
+      it.
+    options:
+      name: logtrail-alert
+      conditions:
+        max_size: 5GB
+      continue_if_exception: true
+      allow_ilm_indices: true
+  '2':
+    action: rollover
+    description: >-
+      This action works on default logtrail indices. It is recommended to enable
+      it.
+    options:
+      name: logtrail-elasticsearch
+      conditions:
+        max_size: 5GB
+      continue_if_exception: true
+      allow_ilm_indices: true
+  '3':
+    action: rollover
+    description: >-
+      This action works on default logtrail indices. It is recommended to enable
+      it.
+    options:
+      name: logtrail-kibana
+      conditions:
+        max_size: 5GB
+      continue_if_exception: true
+      allow_ilm_indices: true
+  '4':
+    action: rollover
+    description: >-
+      This action works on default logtrail indices. It is recommended to enable
+      it.
+    options:
+      name: logtrail-logstash
+      conditions:
+        max_size: 5GB
+      continue_if_exception: true
+      allow_ilm_indices: true
+
+
 ```
 
 ## Intelligence Module
@@ -2225,15 +2595,13 @@ The command for compress and decompress Archive `*.zdtd` file useing multiple CP
 zstdmt -d winlogbeat-2020.10_2020-10-23.json.zstd -o winlogbeat-2020.10_2020-10-23.json
 ```
 
-## Wiki
+## E-doc
 
-### Wiki.js
+**E-doc** is one of the most powerful and extensible Wiki-like software. The **ITRS Log Analytics** have integration plugin with **E-doc**, which allows you to access **E-doc** directly from the ITRS Log Analytics GUI. Additionally, ITRS Log Analytics provides access management to the E-doc content.
 
-**Wiki.js** is one of the most powerful and extensible Wiki software. The **ITRS Log Analytics** have integration plugin with **Wiki.js**, which allows you to access **Wiki.js** directly from the ITRS Log Analytics GUI. Additionally, ITRS Log Analytics provides access management to the Wiki content.
+#### Login to E-doc
 
-#### Login to Wiki
-
-Access to the **Wiki** is from the main **ITRS Log Analytics** GUI window via the **Wiki** button located at the top of the window:
+Access to the **E-doc** is from the main **ITRS Log Analytics** GUI window via the **E-doc** button located at the top of the window:
 
 ![](/media/media/image168.png)
 
@@ -2361,7 +2729,7 @@ There are several ways to create a public site:
 
 To create sites with the permissions of a given group, do the following:
 
-1. Check the permissions of the group to which the user belongs. To do this, click on the ***Account*** button in the top right menu in Wiki.js:
+1. Check the permissions of the group to which the user belongs. To do this, click on the ***Account*** button in the top right menu in E-doc:
 
    ![](/media/media/image195.png)
 
@@ -2425,7 +2793,7 @@ To create sites with the permissions of a given group, do the following:
 - to-do list;
 - inserting special characters;
 - inserting tables;
-- inserting text blocks Wiki.js also offers non-text insertion.
+- inserting text blocks E-doc also offers non-text insertion.
 
 
 
@@ -2503,7 +2871,7 @@ To create sites with the permissions of a given group, do the following:
 
 #### Create a "tree" of documents
 
-***Wiki.js*** does not offer a document tree structure directly. Creating a structure (tree) of documents is done automatically by grouping sites according to the paths in which they are available.
+***E-doc*** does not offer a document tree structure directly. Creating a structure (tree) of documents is done automatically by grouping sites according to the paths in which they are available.
 
 1. To create document structures (trees), create sites with the following paths:
 
@@ -2533,7 +2901,7 @@ To create sites with the permissions of a given group, do the following:
 
 4. You can create a document with chapters in a similar way. To do this, create sites with the following paths:
 
-   ```wiki
+   ```e-doc
    /en/elaboration/1-introduction
    /en/elaboration/2-chapter-1
    /en/elaboration/2-chapter-1
@@ -2555,7 +2923,179 @@ To create sites with the permissions of a given group, do the following:
 
    ![](/media/media/image194.png)
 
-## Celebro - Cluster Health
+#### Embed allow iframes
+
+**iFrames** - an element to the HTML language that allows an HTML document to be embedded within another HTML document.
+
+For enable iframes in pages:
+
+1. With top menu select `Administration` \
+   ![](/media/media/04_wiki_embed_01.png)
+
+2. Now select on left side menu `Rendering` \
+   ![](/media/media/04_wiki_embed_02.png)
+
+3. In `Pipeline` medu select `html->html` \
+   ![](/media/media/04_wiki_embed_03.png)
+
+4. Then select `Security` \
+   ![](media/media/04_wiki_embed_04.png)
+
+5. Next enable option `Allow iframes` \
+   ![](/media/media/04_wiki_embed_05.png)
+
+6. `Apply` changes \
+   ![](/media/media/04_wiki_embed_06.png)
+
+**Now is possible embed iframes in page HTML code.** 
+
+Example of usage:
+
+- Use iframe tag in page html code. \
+  ![](/media/media/04_wiki_embed_eou_01.png)
+
+- Result: \
+  ![](/media/media/04_wiki_embed_eou_02.png)
+
+#### Conver Pages
+
+It's possible convert page between `Visoal Editor`, `MarkDown` and `Raw HTML`.
+
+Example of usage: 
+
+- Create or edit page content in `Visual Editor` \
+  ![](/media/media/04_wiki_convert_01.png)
+
+- Click on the `save` button and later click `close` button '\
+  ![](/media/media/04_wiki_convert_02.png)
+
+- Select `Page Action` and `Convert` \
+  ![](/media/media/04_wiki_convert_03.png)
+
+- Choose destination format \
+  ![](/media/media/04_wiki_convert_04.png)
+
+- The content in `Raw HTML format: \
+  ![](/media/media/04_wiki_convert_05.png)
+
+
+## CMDB module
+
+This module is a tool used to store information about hardware and sofrware assets, its database store information regarding the relationships among its assets.Is a means of understanding the critical assets and their relationships, such as information systyems upstream sources or dependencies of assets. Data coming with indexes wazuh, winlogbeat,syslog and filebeat. 
+
+Module CMDB have two tabs:
+
+### `Infrastructure` tab
+
+
+1. Get documents button - which get all matching data. \
+   ![](/media/media/04_cmdb_infra_tab_01.png)
+
+2. Search by parameters. \
+   ![](/media/media/04_cmdb_infra_tab_02.png)
+
+3. Select query filters - filter data by fields example name or IP. \
+   ![](/media/media/04_cmdb_infra_tab_03.png)
+
+4. Add new source
+   
+   * For add new element click `Add new source` button. \
+   ![](/media/media/04_cmdb_infra_tab_04.png)
+   
+   Complete a form:
+   
+      - name (required)
+      - ip (optional)
+      - risk_group (optional)
+      - lastKeepAlive (optional)
+      - risk_score (optional)
+      - siem_id (optional)
+      - status (optional)
+   Click `Save` \
+   ![](/media/media/04_cmdb_infra_tab_05.png)
+   
+5. Update multiple element
+   
+   - Select multiple items which you needed change \
+   ![](/media/media/04_cmdb_infra_tab_06.png)
+   - Select fields for changes (in all selected items)
+   - Write new value (for all selected items)
+   - Click `Update` button \
+   ![](/media/media/04_cmdb_infra_tab_07.png)
+   
+6. Update single element
+   
+   - Select `Update` icon on element \
+   ![](/media/media/04_cmdb_infra_tab_08.png)
+   - Change value/values and click `Update` \
+   ![](/media/media/04_cmdb_infra_tab_09.png)
+
+### `Relations` Tab
+   
+1. Expand details \
+   ![](/media/media/04_cmdb_infra_tab_10.png)
+
+2. Edit relation for source
+   
+   - Click update icon. \
+   ![](/media/media/04_cmdb_infra_tab_11.png)
+   - Add new destination for selected source and click `update` \
+   ![](/media/media/04_cmdb_infra_tab_12.png)
+   - Delete select destination for delete and click delete destination, confirm with `Update` button \
+   ![](/media/media/04_cmdb_infra_tab_13.png)
+
+3. Create relation
+   
+   - Click `Add new relations` \
+   ![](/media/media/04_cmdb_infra_tab_14.png)
+   - Select source and one or more destination, next confirm with `Save` button. \
+   ![](/media/media/04_cmdb_infra_tab_15.png)
+
+4. Delete relation
+   
+   - Selecte delete relation icon \
+   ![](/media/media/04_cmdb_infra_tab_16.png)
+   - Confirm delete relation \
+   ![](/media/media/04_cmdb_infra_tab_17.png)
+
+### Integration with network_visualization
+
+1. Select visualize module \
+![](/media/media/04_cmdb_integra_net_vis_01.png)
+
+2. Click create visualization button \
+![](/media/media/04_cmdb_integra_net_vis_02.png)
+
+3. Select Network type \
+![](/media/media/04_cmdb_integra_net_vis_03.png)
+
+4. Select `cmdb_relations` source \
+![](/media/media/04_cmdb_integra_net_vis_04.png)
+
+5. At Buckets menu click `Add`, \
+![](/media/media/04_cmdb_integra_net_vis_05.png)
+
+   - First bucket **Node** 
+      - Aggregation: Terms
+      - Field: source
+   
+   - Second bucket **Node**
+      - Sub aggregation: Terms
+      - Field: destination
+
+   - Third bucket **Node Color**
+      - Sub aggregation: Terms
+      - Field: source_risk_group
+
+![](/media/media/04_cmdb_integra_net_vis_06.png)
+
+6. Select `option` button and matk the checkbox `Redirect to CMDB` \
+![](/media/media/04_cmdb_integra_net_vis_07.png)
+
+7. Now if click on some source icon, browser will redirect you to CMDB module with all information for this source. \
+![](/media/media/04_cmdb_integra_net_vis_08.png)
+
+## Cerebro - Cluster Health
 
 Cerebro is the Elasticsearch administration tool that allows you to perform the following tasks:
 
@@ -2563,7 +3103,7 @@ Cerebro is the Elasticsearch administration tool that allows you to perform the 
 
 ![](/media/media/image217.png)
 
-- monitoring and management of index shapshoots :
+- monitoring and management of index snapshoots :
 
 ![](/media/media/image220.png)
 
@@ -3722,8 +4262,314 @@ Events are by default sent in plain text. You can enable encryption by setting s
 		    ssl_key => "path_to_key_file"
 		  }
 		}
+		
+### Logstash - Input Relp
 
-#### Logstash - Input File
+#### Installation
+
+For plugins not bundled by default, it is easy to install by running bin/logstash-plugin install logstash-input-relp.
+
+#### Description
+
+Read RELP events over a TCP socket.
+
+This protocol implements application-level acknowledgements to help protect against message loss.
+
+Message acks only function as far as messages being put into the queue for filters; anything lost after that point will not be retransmitted.
+
+#### Relp input configuration options
+
+This plugin supports the following configuration options plus the Common Options described later.
+
+<table border="1" class="colwidths-given docutils" id="id1">
+<colgroup>
+<col width="2%" />
+<col width="30%" />
+<col width="50%" />
+<col width="18%" />
+
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Nr.</th>
+<th class="head">Setting</th>
+<th class="head">Input type</th>
+<th class="head">Required</th>
+</tr>
+</thead>
+<tbody valign="top">
+
+<tr class="row-even"><td><p class="first last">1</p>
+</td>
+<td><p class="first last">host</p>
+</td>
+<td><p class="first last">string</p>
+</td>
+<td><p class="first last">No</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">2</p>
+</td>
+<td><p class="first last">port</p>
+</td>
+<td><p class="first last">number</p>
+</td>
+<td><p class="first last">Yes</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">3</p>
+</td>
+<td><p class="first last">ssl_cacert</p>
+</td>
+<td><p class="first last">a valid filesystem path</p>
+</td>
+<td><p class="first last">No</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">4</p>
+</td>
+<td><p class="first last">ssl_cert</p>
+</td>
+<td><p class="first last">a valid filesystem path</p>
+</td>
+<td><p class="first last">No</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">5</p>
+</td>
+<td><p class="first last">ssl_enable</p>
+</td>
+<td><p class="first last">boolean</p>
+</td>
+<td><p class="first last">No</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">6</p>
+</td>
+<td><p class="first last">ssl_key</p>
+</td>
+<td><p class="first last">a valid filesystem path</p>
+</td>
+<td><p class="first last">No</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">7</p>
+</td>
+<td><p class="first last">ssl_key_passphrase</p>
+</td>
+<td><p class="first last">password</p>
+</td>
+<td><p class="first last">No</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">8</p>
+</td>
+<td><p class="first last">ssl_verify</p>
+</td>
+<td><p class="first last">string</p>
+</td>
+<td><p class="first last">boolean</p>
+</td>
+</tr>
+
+
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
+```host``` - The address to listen on.
+
+```port``` - The port to listen on.
+
+```ssl_cacert``` - The SSL CA certificate, chainfile or CA path. The system CA path is automatically included.
+
+```ssl_cert``` - SSL certificate path
+
+```ssl_enable``` - Enable SSL (must be set for other ssl_ options to take effect).
+
+```ssl_key``` - SSL key path
+
+```ssl_key_passphrase``` - SSL key passphrase
+
+```ssl_verify``` - Verify the identity of the other end of the SSL connection against the CA. For input, sets the field sslsubject to that of the client certificate.
+
+
+Common Options
+The following configuration options are supported by all input plugins:
+
+<table border="1" class="colwidths-given docutils" id="id1">
+<colgroup>
+<col width="2%" />
+<col width="30%" />
+<col width="50%" />
+<col width="18%" />
+
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Nr.</th>
+<th class="head">Setting</th>
+<th class="head">Input type</th>
+<th class="head">Required</th>
+</tr>
+</thead>
+<tbody valign="top">
+
+<tr class="row-even"><td><p class="first last">1</p>
+</td>
+<td><p class="first last">add_field</p>
+</td>
+<td><p class="first last">hash</p>
+</td>
+<td><p class="first last">No</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">2</p>
+</td>
+<td><p class="first last">codec</p>
+</td>
+<td><p class="first last">codec</p>
+</td>
+<td><p class="first last">No</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">3</p>
+</td>
+<td><p class="first last">enable_metric</p>
+</td>
+<td><p class="first last">boolean</p>
+</td>
+<td><p class="first last">No</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">4</p>
+</td>
+<td><p class="first last">id</p>
+</td>
+<td><p class="first last">string</p>
+</td>
+<td><p class="first last">No</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">5</p>
+</td>
+<td><p class="first last">tags</p>
+</td>
+<td><p class="first last">array</p>
+</td>
+<td><p class="first last">No</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">6</p>
+</td>
+<td><p class="first last">type</p>
+</td>
+<td><p class="first last">string</p>
+</td>
+<td><p class="first last">No</p>
+</td>
+</tr>
+
+
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
+```add_field``` - Add a field to an event
+
+```codec``` - The codec used for input data. Input codecs are a convenient method for decoding your data before it enters the input, without needing a separate filter in your Logstash pipeline.
+
+```enable_metric``` - Disable or enable metric logging for this specific plugin instance by default we record all the metrics we can, but you can disable metrics collection for a specific plugin.
+
+```id``` - Add a unique ID to the plugin configuration. If no ID is specified, Logstash will generate one. It is strongly recommended to set this ID in your configuration. This is particularly useful when you have two or more plugins of the same type, for example, if you have 2 relp inputs. Adding a named ID in this case will help in monitoring Logstash when using the monitoring APIs.
+
+```yml
+input {
+  relp {
+    id => "my_plugin_id"
+  }
+}
+```
+
+```tags``` - add any number of arbitrary tags to your event.
+
+```type``` - Add a type field to all events handled by this input.
+
+Types are used mainly for filter activation.
+
+The type is stored as part of the event itself, so you can also use the type to search for it in Kibana.
+
+If you try to set a type on an event that already has one (for example when you send an event from a shipper to an indexer) then a new input will not override the existing type. A type set at the shipper stays with that event for its life even when sent to another Logstash server.
+
+
+### Logstash - Input Kafka
+
+This input will read events from a Kafka topic.
+
+Sample definition:
+
+```yml
+input {
+  kafka {
+    bootstrap_servers => "10.0.0.1:9092"
+    consumer_threads => 3
+
+    topics => ["example"]
+    codec => json
+    client_id => "hostname"
+    group_id => "logstash"
+    max_partition_fetch_bytes => "30000000"
+    max_poll_records => "1000"
+
+    fetch_max_bytes => "72428800"
+    fetch_min_bytes => "1000000"
+
+    fetch_max_wait_ms => "800"
+    
+    check_crcs => false
+
+  }
+}
+```
+```bootstrap_servers``` - A list of URLs of Kafka instances to use for establishing the initial connection to the cluster. This list should be in the form of host1:port1,host2:port2 These urls are just used for the initial connection to discover the full cluster membership (which may change dynamically) so this list need not contain the full set of servers (you may want more than one, though, in case a server is down).
+
+```consumer_threads``` - Ideally you should have as many threads as the number of partitions for a perfect balance — more threads than partitions means that some threads will be idle
+```topics``` - A list of topics to subscribe to, defaults to ["logstash"].
+
+```codec``` - The codec used for input data. Input codecs are a convenient method for decoding your data before it enters the input, without needing a separate filter in your Logstash pipeline.
+
+```client_id``` - The id string to pass to the server when making requests. The purpose of this is to be able to track the source of requests beyond just ip/port by allowing a logical application name to be included.
+```group_id``` - The identifier of the group this consumer belongs to. Consumer group is a single logical subscriber that happens to be made up of multiple processors. Messages in a topic will be distributed to all Logstash instances with the same group_id.
+
+```max_partition_fetch_bytes``` - The maximum amount of data per-partition the server will return. The maximum total memory used for a request will be #partitions * max.partition.fetch.bytes. This size must be at least as large as the maximum message size the server allows or else it is possible for the producer to send messages larger than the consumer can fetch. If that happens, the consumer can get stuck trying to fetch a large message on a certain partition.
+
+```max_poll_records``` - The maximum number of records returned in a single call to poll().
+
+```fetch_max_bytes``` - The maximum amount of data the server should return for a fetch request. This is not an absolute maximum, if the first message in the first non-empty partition of the fetch is larger than this value, the message will still be returned to ensure that the consumer can make progress.
+
+```fetch_min_bytes``` - The minimum amount of data the server should return for a fetch request. If insufficient data is available the request will wait for that much data to accumulate before answering the request.
+
+```fetch_max_wait_ms``` - The maximum amount of time the server will block before answering the fetch request if there isn’t sufficient data to immediately satisfy fetch_min_bytes. This should be less than or equal to the timeout used in poll_timeout_ms.
+
+```check_crcs``` - Automatically check the CRC32 of the records consumed. This ensures no on-the-wire or on-disk corruption to the messages occurred. This check adds some overhead, so it may be disabled in cases seeking extreme performance.
+
+### Logstash - Input File
 
 This plugin stream events from files, normally by tailing them in a manner similar to tail -0F but optionally reading them from the beginning. Sample definition:
 
@@ -4701,7 +5547,7 @@ filter {
 }
 ```
 
-More about `jdbc` plugin parameters: [(https://www.elastic.co/guide/en/logstash/6.8/plugins-filters-jdbc_streaming.html](https://www.elastic.co/guide/en/logstash/6.8/plugins-filters-jdbc_streaming.html#plugins-filters-jdbc_streaming-prepared_statements)
+More about `jdbc` plugin parameters: [https://www.elastic.co/guide/en/logstash/6.8/plugins-filters-jdbc_streaming.html](https://www.elastic.co/guide/en/logstash/6.8/plugins-filters-jdbc_streaming.html#plugins-filters-jdbc_streaming-prepared_statements)
 
 #### Filter `logstash-filter-ldap`
 
@@ -4904,6 +5750,18 @@ grok {
 }
 ```
 
+#### Mathematical calculations
+
+Using Logstash filters, you can perform mathematical calculations for field values and save the results to a new field. 
+
+Application example: 
+
+```bash
+filter {
+   ruby { code => 'event.set("someField", event.get("field1") + event.get("field2"))' }
+}
+```
+
 ### Logstash - Output to Elasticsearch
 
 This output plugin sends all data to the local Elasticsearch instance and create indexes:	
@@ -5022,6 +5880,49 @@ This Logstash plugin has example of complete configuration for integration with 
         }
       }
     }
+    
+
+### Logstash plugin for LDAP data enrichement
+
+1. Download logstash plugin with dependencies ![logstash-filter-ldap-0.2.4.zip](/files/logstash-filter-ldap-0.2.4.zip) and upload files to your server.
+
+2. Unzip file.
+
+3. Install logstash plugin.
+
+	```/usr/share/logstash/bin/logstash-plugin install /directory/to/file/logstash-filter-ldap-0.2.4.gem```
+	
+4. Create new file in beats pipeline. To do this, go to beats folder (/etc/logstash/conf.d/beats) and create new config file, for example ```031-filter-ldap-enrichement.conf```
+
+5. Below is an example of the contents of the configuration file:
+	
+	```filter {
+	  ldap {
+	    identifier_value => "%{[winlog][event_data][TargetUserName]}"
+	    identifier_key => "sAMAccountName"
+	    identifier_type => "person"
+	    host => "10.0.0.1"
+	    ldap_port => "389"
+	    username => "user"
+	    password => "pass"
+	    search_dn => "OU=example,DC=example"
+	    enable_error_logging => true
+	    attributes => ['sAMAccountType','lastLogon','badPasswordTime']
+	  }
+	
+	
+6. Fields description
+
+	```	identifier_value - Identifier of the value to search. If identifier type is uid, then the value should be the uid to search for.
+	identifier_key - Type of the identifier to search.
+	identifier_type - Object class of the object to search.
+	host - LDAP server host adress.
+	ldap_port - LDAP server port for non-ssl connection.
+	username - Username to use for search in the database.
+	password - Password of the account linked to previous username.
+	search_dn - Domain name in which search inside the ldap database (usually your userdn or groupdn).
+	enable_error_logging - When there is a problem with the connection with the LDAP database, write reason in the event.
+	attributes - List of attributes to get. If not set, all attributes available will be get.
 
 ### Single password in all Logstash outputs
 
@@ -5759,3 +6660,656 @@ POST syslog-*,winlogbeat2*/_join
   }
 }
 ```
+
+## Automation
+
+Automations helps you to interconnect different apps with an API with each other to share and manipulate its data without a single line of code. It is an easy to use, user-friendly and highly customizable module, which uses an intuitive user interface for you to design your unique scenarios very fast. 
+A automation is a collection of nodes connected together to automate a process.
+A automation can be started manually (with the Start node) or by Trigger nodes (e.g. Webhook). When a automation is started, it executes all the active and connected nodes. The automation execution ends when all the nodes have processed their data. You can view your automation executions in the Execution log, which can be helpful for debugging.
+
+![](/media/media/execute_workflow.gif)
+
+**Activating a automation**
+Automations that start with a Trigger node or a Webhook node need to be activated in order to be executed. This is done via the Active toggle in the Automation UI.
+Active automations enable the Trigger and Webhook nodes to receive data whenever a condition is met (e.g., Monday at 10:00, an update in a Trello board) and in turn trigger the automation execution.
+All the newly created automations are deactivated by default.
+
+**Sharing a automation**
+
+Automations are saved in JSON format. You can export your automations as JSON files or import JSON files into your system.
+You can export a automation as a JSON file in two ways:
+*	Download: Click the Download button under the Automation menu in the sidebar. This will download the automation as a JSON file.
+*	Copy-Paste: Select all the automation nodes in the Automation UI, copy them (Ctrl + c), then paste them (Ctrl + v) in your desired file.
+You can import JSON files as automations in two ways:
+*	Import: Click Import from File or Import from URL under the Automation menu in the sidebar and select the JSON file or paste the link to a automation.
+*	Copy-Paste: Copy the JSON automation to the clipboard (Ctrl + c) and paste it (Ctrl + v) into the Automation UI.
+
+**Automation settings**
+
+On each automation, it is possible to set some custom settings and overwrite some of the global default settings from the Automation > Settings menu.
+
+![](/media/media/workflow-settings.png)
+ 
+The following settings are available:
+*	Error Automation: Select a automation to trigger if the current automation fails. 
+*	Timezone: Sets the timezone to be used in the automation. The Timezone setting is particularly important for the Cron Trigger node.
+*	Save Data Error Execution: If the execution data of the automation should be saved when the automation fails.
+*	Save Data Success Execution: If the execution data of the automation should be saved when the automation succeeds.
+*	Save Manual Executions: If executions started from the Automation UI should be saved.
+*	Save Execution Progress: If the execution data of each node should be saved. If set to "Yes", the automation resumes from where it stopped in case of an error. However, this might increase latency.
+*	Timeout Automation: Toggle to enable setting a duration after which the current automation execution should be cancelled.
+*	Timeout After: Only available when Timeout Automation is enabled. Set the time in hours, minutes, and seconds after which the automation should timeout. 
+
+**Failed automations**
+
+If your automation execution fails, you can retry the execution. To retry a failed automation:
+1.	Open the Executions list from the sidebar.
+2.	For the automation execution you want to retry, click on the refresh icon under the Status column.
+3.	Select either of the following options to retry the execution: 
+*	Retry with currently saved automation: Once you make changes to your automation, you can select this option to execute the automation with the previous execution data.
+*	Retry with original automation: If you want to retry the execution without making changes to your automation, you can select this option to retry the execution with the previous execution data.
+
+You can also use the Error Trigger node, which triggers a automation when another automation has an error. Once a automation fails, this node gets details about the failed automation and the errors.
+
+### Connection
+
+A connection establishes a link between nodes to route data through the automation. A connection between two nodes passes data from one node's output to another node's input. Each node can have one or multiple connections.
+
+To create a connection between two nodes, click on the grey dot on the right side of the node and slide the arrow to the grey rectangle on the left side of the following node.
+
+##### Example
+
+An IF node has two connections to different nodes: one for when the statement is true and one for when the statement is false.
+
+![](/media/media/Connection_ifnode.8e006dce.gif)
+
+### Automations List
+
+This section includes the operations for creating and editing automations.
+
+* **New**: Create a new automation
+* **Open**: Open the list of saved automations
+* **Save**: Save changes to the current automation
+* **Save As**: Save the current automation under a new name
+* **Rename**: Rename the current automation
+* **Delete**: Delete the current automation
+* **Download**: Download the current automation as a JSON file
+* **Import from URL**: Import a automation from a URL
+* **Import from File**: Import a automation from a local file
+* **Settings**: View and change the settings of the current automation
+
+### Credentials
+
+This section includes the operations for creating credentials.
+
+Credentials are private pieces of information issued by apps/services to authenticate you as a user and allow you to connect and share information between the app/service and the n8n node.
+
+* **New**: Create new credentials
+* **Open**: Open the list of saved credentials
+
+### Executions
+
+This section includes information about your automation executions, each completed run of a automation.
+
+You can enabling logging of your failed, successful, and/or manually selected automations using the Automation > Settings page.
+
+### Node
+
+A node is an entry point for retrieving data, a function to process data, or an exit for sending data. The data process performed by nodes can include filtering, recomposing, and changing data.
+
+There may be one or several nodes for your API, service, or app. By connecting multiple nodes, you can create simple and complex automations. When you add a node to the Editor UI, the node is automatically activated and requires you to configure it (by adding credentials, selecting operations, writing expressions, etc.).
+
+There are three types of nodes:
+
+* Core Nodes
+* Regular Nodes
+* Trigger Nodes
+
+#### Core nodes
+
+Core nodes are functions or services that can be used to control how automations are run or to provide generic API support.
+
+Use the Start node when you want to manually trigger the automation with the `Execute Automation` button at the bottom of the Editor UI. This way of starting the automation is useful when creating and testing new automations.
+
+If an application you need does not have a dedicated Node yet, you can access the data by using the HTTP Request node or the Webhook node. You can also read about creating nodes and make a node for your desired application.
+
+
+#### Regular nodes
+
+Regular nodes perform an action, like fetching data or creating an entry in a calendar. Regular nodes are named for the application they represent and are listed under Regular Nodes in the Editor UI.
+
+![](/media/media/Regular_nodes.d3cec3e9.png)
+
+##### Example
+
+A Google Sheets node can be used to retrieve or write data to a Google Sheet.
+
+![](/media/media/Google_sheets.d9ee72a3.png)
+
+#### Trigger nodes
+
+Trigger nodes start automations and supply the initial data.
+
+![](/media/media/Trigger_nodes.5bd536aa.png)
+
+Trigger nodes can be app or core nodes.
+
+* **Core Trigger nodes** start the automation at a specific time, at a time interval, or on a webhook call. For example, to get all users from a Postgres database every 10 minutes, use the Interval Trigger node with the Postgres node.
+
+* **App Trigger nodes** start the automation when an event happens in an app. App Trigger nodes are named like the application they represent followed by "Trigger" and are listed under Trigger Nodes in the Editor. For example, a Telegram trigger node can be used to trigger a automation when a message is sent in a Telegram chat.
+
+![](/media/media/telegram_trigger.fae8dcd9.png)
+
+#### Node settings
+
+Nodes come with global **operations** and **settings**, as well as app-specific **parameters** that can be configured.
+
+##### Operations
+
+The node operations are illustrated with icons that appear on top of the node when you hover on it:
+* **Delete**: Remove the selected node from the automation
+* **Pause**: Deactivate the selected node
+* **Copy**: Duplicate the selected node
+* **Play**: Run the selected node
+
+![](/media/media/Node_settings.36ddf764.gif)
+
+To access the node parameters and settings, double-click on the node.
+
+##### Parameters
+
+The node parameters allow you to define the operations the node should perform. Find the available parameters of each node in the node reference.
+
+##### Settings
+
+The node settings allow you to configure the look and execution of the node. The following options are available:
+
+* **Notes**: Optional note to save with the node
+* **Display note in flow**: If active, the note above will be displayed in the automation as a subtitle
+* **Node Color**: The color of the node in the automation
+* **Always Output Data**: If active, the node will return an empty item even if the node returns no data during an initial execution. Be careful setting this on IF nodes, as it could cause an infinite loop.
+* **Execute Once**: If active, the node executes only once, with data from the first item it receives.
+* **Retry On Fail**: If active, the node tries to execute a failed attempt multiple times until it succeeds
+* **Continue On Fail**: If active, the automation continues even if the execution of the node fails. When this happens, the node passes along input data from previous nodes, so the automation should account for unexpected output data.
+
+![](/media/media/Node_parameters.090b2d35.gif)
+
+If a node is not correctly configured or is missing some required information, a **warning sign** is displayed on the top right corner of the node. To see what parameters are incorrect, double-click on the node and have a look at fields marked with red and the error message displayed in the respective warning symbol.
+
+![](/media/media/Node_error.e189f05d.gif)
+
+### How to filter events
+
+You can do it in multiple ways. You can use those nodes:
+
+- IF
+- Switch
+- Spreadsheet File (a lot of conditions - advanced)
+
+#### Example If usage
+
+If you receive messages from Logstash then you have fields like host.name. You can use if condition to filter known host.
+
+1. Create If node
+2. Click Add condition
+3. From dropdown menu select String
+4. As Value 1 type or select a field which you want use. In this example we use expression {{ $json["host"]["name"] }}
+5. As Value 2 type host name which you want to process. In this example we use paloalto.paseries.test
+6. Next you can select any other node for further process filtered message.
+
+#### Example Case usage
+
+1. Create Case node
+2. Select Rules on Mode 
+3. Select String on Data Type
+4. As Value 1 type or select a field which you want use. In this example we use expression {{ $json["host"]["name"] }}
+5. Click Add Routing Rule
+6. As Value 2 type host name which you want to process. In this example we use paloalto.paseries.test
+7. As Output type 0.
+
+You can add multiple conditions. On one node you can add 3 conditions if you need more then add to latest output next node and select this node as Fallback Output.
+
+#### IF
+
+The IF node is used to split a workflow conditionally based on comparison operations.
+
+##### Node Reference
+
+You can add comparison conditions using the Add Condition dropdown. Conditions can be created based on the data type, the available comparison operations vary for each data type.
+
+Boolean
+
+- Equal
+- Not Equal
+- Number
+
+Smaller
+
+- Smaller Equal
+- Equal
+- Not Equal
+- Larger
+- Larger Equal
+- Is Empty
+
+String
+
+- Contains
+- Equal
+- Not Contains
+- Not Equal
+- Regex
+- Is Empty
+
+You can choose to split a workflow when any of the specified conditions are met, or only when all the specified conditions are met using the options in the Combine dropdown list.
+
+#### Switch
+
+The Switch node is used to route a workflow conditionally based on comparison operations. It is similar to the IF node, but supports up to four conditional routes.
+
+##### Node Reference
+
+Mode: This dropdown is used to select whether the conditions will be defined as rules in the node, or as an expression, programmatically.
+
+You can add comparison conditions using the Add Routing Rule dropdown. Conditions can be created based on the data type. The available comparison operations vary for each data type.
+
+Boolean
+
+- Equal
+- Not Equal
+
+Number
+
+- Smaller
+- Smaller Equal
+- Equal
+- Not Equal
+- Larger
+- Larger Equal
+
+String
+
+- Contains
+- Equal
+- Not Contains
+- Not Equal
+- Regex
+
+You can route a workflow when none of the specified conditions are met using Fallback Output dropdown list.
+
+#### Spreadsheet File
+
+The Spreadsheet File node is used to access data from spreadsheet files.
+
+##### Basic Operations
+
+- Read from file
+- Write to file
+
+##### Node Reference
+
+When writing to a spreadsheet file, the File Format field can be used to specify the format of the file to save the data as.
+
+File Format
+
+- CSV (Comma-separated values)
+- HTML (HTML Table)
+- ODS (OpenDocument Spreadsheet)
+- RTF (Rich Text Format)
+- XLS (Excel)
+- XLSX (Excel)
+
+Binary Property field: Name of the binary property in which to save the binary data of the spreadsheet file.
+
+Options
+
+- Sheet Name field: This field specifies the name of the sheet from which the data should be read or written to.
+- Read As String field: This toggle enables you to parse all input data as strings.
+- RAW Data field: This toggle enables you to skip the parsing of data.
+- File Name field: This field can be used to specify a custom file name when writing a spreadsheet file to disk.
+
+### Automation integration nodes
+To boost your automation you can connect with widely external nodes.
+
+List of automation nodes:
+- Action Network
+- Activation Trigger
+- ActiveCampaign
+- ActiveCampaign Trigger
+- Acuity Scheduling Trigger
+- Affinity
+- Affinity Trigger
+- Agile CRM
+- Airtable
+- Airtable Trigger
+- AMQP Sender
+- AMQP Trigger
+- APITemplate.io
+- Asana
+- Asana Trigger
+- Automizy
+- Autopilot
+- Autopilot Trigger
+- AWS Comprehend
+- AWS DynamoDB
+- AWS Lambda
+- AWS Rekognition
+- AWS S3
+- AWS SES
+- AWS SNS
+- AWS SNS Trigger
+- AWS SQS
+- AWS Textract
+- AWS Transcribe
+- Bannerbear
+- Baserow
+- Beeminder
+- Bitbucket Trigger
+- Bitly
+- Bitwarden
+- Box
+- Box Trigger
+- Brandfetch
+- Bubble
+- Calendly Trigger
+- Chargebee
+- Chargebee Trigger
+- CircleCI
+- Clearbit
+- ClickUp
+- ClickUp Trigger
+- Clockify
+- Clockify Trigger
+- Cockpit
+- Coda
+- CoinGecko
+- Compression
+- Contentful
+- ConvertKit
+- ConvertKit Trigger
+- Copper
+- Copper Trigger
+- Cortex
+- CrateDB
+- Cron
+- Crypto
+- Customer Datastore (n8n training)
+- Customer Messenger (n8n training)
+- Customer Messenger (n8n training)
+- Customer.io
+- Customer.io Trigger
+- Date & Time
+- DeepL
+- Demio
+- DHL
+- Discord
+- Discourse
+- Disqus
+- Drift
+- Dropbox
+- Dropcontact
+- E-goi
+- Edit Image
+- Elastic Security
+- Elasticsearch
+- EmailReadImap
+- Emelia
+- Emelia Trigger
+- ERPNext
+- Error Trigger
+- Eventbrite Trigger
+- Execute Command
+- Execute Automation
+- Facebook Graph API
+- Facebook Trigger
+- Figma Trigger (Beta)
+- FileMaker
+- Flow
+- Flow Trigger
+- Form.io Trigger
+- Formstack Trigger
+- Freshdesk
+- Freshservice
+- Freshworks CRM
+- FTP
+- Function
+- Function Item
+- G Suite Admin
+- GetResponse
+- GetResponse Trigger
+- Ghost
+- Git
+- GitHub
+- Github Trigger
+- GitLab
+- GitLab Trigger
+- Gmail
+- Google Analytics
+- Google BigQuery
+- Google Books
+- Google Calendar
+- Google Calendar Trigger
+- Google Cloud Firestore
+- Google Cloud Natural Language
+- Google Cloud Realtime Database
+- Google Contacts
+- Google Docs
+- Google Drive
+- Google Drive Trigger
+- Google Perspective
+- Google Sheets
+- Google Slides
+- Google Tasks
+- Google Translate
+- Gotify
+- GoToWebinar
+- Grafana
+- GraphQL
+- Grist
+- Gumroad Trigger
+- Hacker News
+- Harvest
+- HelpScout
+- HelpScout Trigger
+- Home Assistant
+- HTML Extract
+- HTTP Request
+- HubSpot
+- HubSpot Trigger
+- Humantic AI
+- Hunter
+- iCalendar
+- IF
+- Intercom
+- Interval
+- Invoice Ninja
+- Invoice Ninja Trigger
+- Item Lists
+- Iterable
+- Jira Software
+- Jira Trigger
+- JotForm Trigger
+- Kafka
+- Kafka Trigger
+- Keap
+- Keap Trigger
+- Kitemaker
+- Lemlist
+- Lemlist Trigger
+- Line
+- LingvaNex
+- LinkedIn
+- Local File Trigger
+- Magento 2
+- Mailcheck
+- Mailchimp
+- Mailchimp Trigger
+- MailerLite
+- MailerLite Trigger
+- Mailgun
+- Mailjet
+- Mailjet Trigger
+- Mandrill
+- Marketstack
+- Matrix
+- Mattermost
+- Mautic
+- Mautic Trigger
+- Medium
+- Merge
+- MessageBird
+- Microsoft Dynamics CRM
+- Microsoft Excel
+- Microsoft OneDrive
+- Microsoft Outlook
+- Microsoft SQL
+- Microsoft Teams
+- Microsoft To Do
+- Mindee
+- MISP
+- Mocean
+- Monday.com
+- MongoDB
+- Monica CRM
+- Move Binary Data
+- MQTT
+- MQTT Trigger
+- MSG91
+- MySQL
+- n8n Trigger
+- NASA
+- Netlify
+- Netlify Trigger
+- Nextcloud
+- No Operation, do nothing
+- NocoDB
+- Notion (Beta)
+- Notion Trigger (Beta)
+- One Simple API
+- OpenThesaurus
+- OpenWeatherMap
+- Orbit
+- Oura
+- Paddle
+- PagerDuty
+- PayPal
+- PayPal Trigger
+- Peekalink
+- Phantombuster
+- Philips Hue
+- Pipedrive
+- Pipedrive Trigger
+- Plivo
+- Postgres
+- PostHog
+- Postmark Trigger
+- ProfitWell
+- Pushbullet
+- Pushcut
+- Pushcut Trigger
+- Pushover
+- QuestDB
+- Quick Base
+- QuickBooks Online
+- RabbitMQ
+- RabbitMQ Trigger
+- Raindrop
+- Read Binary File
+- Read Binary Files
+- Read PDF
+- Reddit
+- Redis
+- Rename Keys
+- Respond to Webhook
+- RocketChat
+- RSS Read
+- Rundeck
+- S3
+- Salesforce
+- Salesmate
+- SeaTable
+- SeaTable Trigger
+- SecurityScorecard
+- Segment
+- Send Email
+- SendGrid
+- Sendy
+- Sentry.io
+- ServiceNow
+- Set
+- Shopify
+- Shopify Trigger
+- SIGNL4
+- Slack
+- sms77
+- Snowflake
+- Split In Batches
+- Splunk
+- Spontit
+- Spotify
+- Spreadsheet File
+- SSE Trigger
+- SSH
+- Stackby
+- Start
+- Stop and Error
+- Storyblok
+- Strapi
+- Strava
+- Strava Trigger
+- Stripe
+- Stripe Trigger
+- SurveyMonkey Trigger
+- Switch
+- Taiga
+- Taiga Trigger
+- Tapfiliate
+- Telegram
+- Telegram Trigger
+- TheHive
+- TheHive Trigger
+- TimescaleDB
+- Todoist
+- Toggl Trigger
+- TravisCI
+- Trello
+- Trello Trigger
+- Twake
+- Twilio
+- Twist
+- Twitter
+- Typeform Trigger
+- Unleashed Software
+- Uplead
+- uProc
+- UptimeRobot
+- urlscan.io
+- Vero
+- Vonage
+- Wait
+- Webex by Cisco
+- Webex by Cisco Trigger
+- Webflow
+- Webflow Trigger
+- Webhook
+- Wekan
+- Wise
+- Wise Trigger
+- WooCommerce
+- WooCommerce Trigger
+- Wordpress
+- Workable Trigger
+- Automation Trigger
+- Write Binary File
+- Wufoo Trigger
+- Xero
+- XML
+- Yourls
+- YouTube
+- Zendesk
+- Zendesk Trigger
+- Zoho CRM
+- Zoom
+- Zulip
+
+

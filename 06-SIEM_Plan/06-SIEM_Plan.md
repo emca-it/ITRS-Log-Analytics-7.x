@@ -4,6 +4,10 @@ SIEM Plan provides access to a database of hundreds of predefined correlation ru
 
 System responds to the needs of today’s organizations by allowing identification of threats on the basis of a much larger amount of data, not always related to the security area as it is provided by traditional SIEM systems.
 
+Product contains deep expert knowledge about security posture. Using entire ecosystem of correlation rules, security dashboards with ability to create electronic documentation SIEM PLAN allows You to score the readiness of Your organization to prevent cyber-attacks. Embedded integration with MITRE ATT&CK quickly identifies unmanaged areas where Your organization potentially needs improvements. Security design will be measured and scored . Single screen will show You potential risk and the consequences of an attack hitting any area of the organization.
+
+Use SIEM Plan do prevent loss of reputation, data leakage, phishing or any other cyber-attack and stay safe.
+
 ## Alert Module
 
 ### Enabling the Alert Module
@@ -257,59 +261,31 @@ The executed command has parameters which are the values of the fields of the ex
 
 #### The Hive
 
-The alert module can forward information about the alert to *Security Incident Response Platform* **TheHive**.
+The Hive alerter will create an Incident in theHive. The body of the notification is formatted the same as with other alerters.\
 
-The configuration of the **Hive Alert** should be done in the definition of the `Rule Definition` alert using the following options:
+Configuration:\
+1. Edit alerter configuration in file `/opt/alert/config.yaml`.
+   - `hive_host:` The hostname of theHive server.
+   - `hive_api:` The apikey for connect with theHive.
+   Example usage:
+   ```
+     hive_host: https://127.0.0.1/base
+     hive_apikey: APIKEY
+   ```
+2. Configuration of alert shuld be done in the definition of the Rule, using following options:
+   - `Alert type:` Type of alert(alert or Case)
+   - `Follow:` If enabled, then if it gets update, its status is set to Updated and the related case is updated too.
+   - `Title:` The title of alert.
+   - `Description:` Description of the alert.
+   - `Type:` The type of the alert
+   - `Source:` The source of the alert.
+   - `Status:` The status of the alert(New,Ignored,Updated,Imported).
+   - `Serverity: The serverity of alert(low,medium,high,critical).
+   - `TLP:` The Traffic Light Protocol of the alert(white,green,amber,red).
+   - `Tags:` The tags attached to alert.
+   - `Observable data mapping:` The key and the value observable data mapping.
+   - `Alert text:` The text of content the alert.
 
-- `hive_alert_config_type: classic` - allows the use of variables to build The Hive alert
-- `hive_alert_config`:
-  - `title` (text) : title of the alert (ignored in `classic` config type)
-  - `description` (text) : description of the alert (ignored in `classic` config type)
-  - `severity` (number) : severity of the alert (1: low; 2: medium; 3: high) **default=2**
-  - `date` (date) : date and time when the alert was raised **default=now**
-  - `tags` (multi-string) : case tags **default=empty**
-  - `tlp` (number) : [TLP](https://www.us-cert.gov/tlp) (`0`: `white`; `1`: `green`; `2: amber`; `3: red`) **default=2**
-  - `status` (AlertStatus) : status of the alert (*New*, *Updated*, *Ignored*, *Imported*) **default=New**
-  - `type` (string) : type of the alert (read only)
-  - `source` (string) : source of the alert (read only)
-  - `sourceRef` (string) : source reference of the alert (read only)
-  - `artifacts` (multi-artifact) : artifact of the alert. It is a array of JSON object containing artifact attributes **default=empty**
-  - `follow` (boolean) : if true, the alert becomes active when updated **default=true**
-- `hive_observable_data_mapping` - mapping field values to the The Hive alert.
-
-**Note:** When use: `hive_alert_config_type: classic` the following parameters are ignored:
-
-```yaml
-hive_alert_config:
-    title: title of the alert
-    description: description of the alert
-```
-
-and you should use:
-
-```yaml
-alert_subject: "title of the alert"
-alert_text: "description of the alert"
-```
-
-Example of configuration:
-
-```bash
-hive_alert_config_type: classic
-
-hive_alert_config:
-  type: 'test'
-  source: 'elastalert-{rule[name]}'
-  severity: 3
-  tags: ['malicious behavior']
-  tlp: 2
-  status: 'New'
-  follow: True
-
-hive_observable_data_mapping:
-  - ip: "{match[field1]}"
-  - source: "{match[field2]}"
-```
 
 #### RSA Archer
 
@@ -382,6 +358,198 @@ Configuration steps:
 
    - Alert Method: `command`
    - Path to script/command: `/opt/alert/bin/ucf.sh`
+
+#### Jira
+
+The Jira alerter will open a ticket on Jira whenever an alert is triggered. \
+Configuration steps: 
+
+1. Create  the file which contains Jira account credentials for exmaple `/opt/alert/jira_acct.yaml`.
+
+   - `user:` The username,
+   - `password:` Personal Access Token
+    \
+     Example usage:
+    ```
+       user: user.example.com
+       password: IjP0vVhgrjkotElFf4ig03g6
+    ```
+
+2. Edit alerter configuration file for example `/opt/alert/config.yaml`.
+   
+   - `jira_account_file:` Path to Jira configuration file,
+   - `jira_server:` The hostname of the Jira server
+   \
+   Example usage:
+   ```
+      jira_account_file: "/opt/alert/jira_acct.yaml"
+      jira_server: "https://example.atlassian.net"
+   ```
+3. The configuration of the Jira Alert should be done in the definition of the Rule Definition alert usin the following options:
+   
+   Required:
+   
+   - `project:` The name of the Jira project,
+   - `issue type:` The type of Jira issue
+   
+   Optional:
+   
+   - `Componenets:` The name of the component or components to set the ticket to. This can be a single component or a list of components, the same must be declare in Jira.
+   - `Labels:` The name of the label or labels to set the ticket to. This can be a single label  or a list of labels the same must be declare in Jira.
+   - `Watchets:` The id of user or  list of user id to add as watchers on a Jira ticket. This can be a single id or a list of id's.
+   - `Priority:` Select priority of issue ( Lowest, Low, Medium, High, Highest).
+   - `Bump tickets:` (true, false) If true, module  search for existing tickets newer than "max_age" and comment on the ticket with information about the alert instead of opening another ticket.
+   - `Bump Only:` Only update if a ticket is found to bump. This skips ticket creation for rules where you only want to affect existing tickets.
+   - `Bump in statuses:` The status or a list of statuses the ticket must be in for to comment on the ticket instead of opening a new one.
+   - `Ignore in title:` Will attempt to remove the value for this field from the Jira subject when searching for tickets to bump.
+   - `Max age:` If Bump ticket enabled the maximum age of a ticket, in days, such that module will comment on the ticket instead of opening a new one. Default is 30 days.
+   - `Bump not in statuses:` If Bump ticket enabled the maximum age of a ticket, in days, such that module will comment on the ticket instead of opening a new one. Default is 30 days.
+   - `Bump after inactivity:` If this is set, alert will only comment on tickets that have been inactive for at least this many days. It only applies if jira_bump_tickets is true. Default is 0 days.
+   - `Transistion to:` Transition this ticket to the given status when bumping.
+
+#### WebHook Connector
+
+The Webhook connector send a POST or PUT request to a web service. You can use  WebHooks  Connector to send alert to  your application or web application when certain events occurrence.
+
+- `URL:` Host of application or web application.
+- `Username:` Username used to send alert.
+- `Password:` Password of the username used to send alert.
+- `Proxy address:` The proxy address.
+- `Headers:` The headers of the request.
+- `Static Payload:` The static payload of the request.
+- `Payload:` The payload of the request.
+
+#### Slack
+
+Slack alerter will send a notification to a predefined Slack channel. The body of the notification is formatted the same as with other alerters.
+
+- `Webhook URL:` The webhook URL that includes your auth data and the ID of the channel (room) you want to post to. Go to the Incoming Webhooks section in your Slack account https://XXXXX.slack.com/services/new/incoming-webhook , choose the channel, click ‘Add Incoming Webhooks Integration’ and copy the resulting URL.
+- `Username:` The username or e-mail address in Slack.
+- `Slack channel:` The name of the Slack channel. If empty, send on default channel.
+- `Message Color:` The collot of the message. If empty, the alert will be posted with the 'danger' color.
+- `Message Title:` The title of the Slack message.
+
+#### ServiceNow
+
+The ServiceNow alerter will create a ne Incident in ServiceNow. The body of the notification is formatted the same as with other alerters. \
+Configuration steps:
+1. Create the file which contains ServiceNow credentials for example `/opt/alert/servicenow_auth_file.yml`.
+   - `servicenow_rest_url:` The ServiceNow RestApi url, this will look like TableAPI.
+   - `username:` The ServiceNow username to access the api.
+   - `password:` The ServiceNow user, from username, password.
+   
+   Example usage:
+   ```
+   servicenow_rest_url: https://dev123.service-now.com/api/now/v1/table/incident
+   username: exampleUser
+   password: exampleUserPassword
+   ```
+
+- `Short Description:` The description of the incident.
+- `Comments:` Comments which will be attach to the indent. This is the equivulant of work notes.
+- `Assignment Group:` The group to assign the incident to.
+- `Category:` The category to attach the incident to. **!!Use an existing category!!**
+- `Subcategory:` The subcategory to attach the incident to. **!!Use an existing subcategory**
+- `CMDB CI:` The configuration item to attach the incident to.
+- `Caller Id:` The caller id(email address) of the user thet created the incident.
+- `Proxy:` Proxy address if needed use proxy.
+
+#### EnergySoar
+
+The Energy Soar alerter will create a ne Incident in Energy Soar. The body of the notification is formatted the same as with other alerters.\
+
+Configuration:\
+1. Edit alerter configuration in file `/opt/alert/config.yaml`.
+   - `hive_host:` The hostname of the Energy Soar server.
+   - `hive_api:` The apikey for connect with Energy Soat.
+   Example usage:
+   ```
+     hive_host: https://127.0.0.1/base
+     hive_apikey: APIKEY
+   ```
+2. Configuration of alert shuld be done in the definition of the Rule, using following options:
+   - `Alert type:` Type of alert(alert or Case)
+   - `Follow:` If enabled, then if it gets update, its status is set to Updated and the related case is updated too.
+   - `Title:` The title of alert.
+   - `Description:` Description of the alert.
+   - `Type:` The type of the alert
+   - `Source:` The source of the alert.
+   - `Status:` The status of the alert(New,Ignored,Updated,Imported).
+   - `Serverity: The serverity of alert(low,medium,high,critical).
+   - `TLP:` The Traffic Light Protocol of the alert(white,green,amber,red).
+   - `Tags:` The tags attached to alert.
+   - `Observable data mapping:` The key and the value observable data mapping.
+   - `Alert text:` The text of content the alert.
+
+### Aggregation
+
+`aggregation:` This option allows you to aggregate multiple matches together into one alert. Every time a match is found, Alert will wait for the aggregation period, and send all of the matches that have occurred in that time for a particular rule together. \
+
+For example:
+```
+aggregation:
+  hours: 2
+```
+Means that if one match occurred at 12:00, another at 1:00, and a third at 2:30, one alert would be sent at 2:00, containing the first two matches, and another at 4:30, containing the third match plus any additional matches occurring before 4:30. This can be very useful if you expect a large number of matches and only want a periodic report. (Optional, time, default none) \
+
+If you wish to aggregate all your alerts and send them on a recurring interval, you can do that using the schedule field. \
+For example, if you wish to receive alerts every Monday and Friday:
+
+```
+aggregation:
+  schedule: '2 4 * * mon,fri'
+```
+
+This uses Cron syntax, which you can read more about [here](https://en.wikipedia.org/wiki/Cron). Make sure to only include either a schedule field or standard datetime fields (such as hours, minutes, days), not both. \
+
+By default, all events that occur during an aggregation window are grouped together. However, if your rule has the aggregation_key field set, then each event sharing a common key value will be grouped together. A separate aggregation window will be made for each newly encountered key value. \
+For example, if you wish to receive alerts that are grouped by the userwho triggered the event, you can set:
+
+```
+aggregation_key: 'my_data.username'
+```
+
+Then, assuming an aggregation window of 10 minutes, if you receive the following data points:
+
+```
+{'my_data': {'username': 'alice', 'event_type': 'login'}, '@timestamp': '2016-09-20T00:00:00'}
+{'my_data': {'username': 'bob', 'event_type': 'something'}, '@timestamp': '2016-09-20T00:05:00'}
+{'my_data': {'username': 'alice', 'event_type': 'something else'}, '@timestamp': '2016-09-20T00:06:00'}
+```
+
+This should result in 2 alerts: One containing alice's two events, sent at 2016-09-20T00:10:00 and one containing bob's one event sent at 2016-09-20T00:16:00. \
+
+For aggregations, there can sometimes be a large number of documents present in the viewing medium (email, Jira, etc..). If you set the summary_table_fields field, Alert will provide a summary of the specified fields from all the results. \
+
+The formatting style of the summary table can be switched between ascii (default) and markdown with parameter summary_table_type. Markdown might be the more suitable formatting for alerters supporting it like TheHive or Energy Soar. \
+
+The maximum number of rows in the summary table can be limited with the parameter `summary_table_max_rows`. \
+
+For example, if you wish to summarize the usernames and event_types that appear in the documents so that you can see the most relevant fields at a quick glance, you can set:
+
+```
+summary_table_fields:
+    - my_data.username
+    - my_data.event_type
+```
+
+Then, for the same sample data shown above listing alice and bob's events, Alert will provide the following summary table in the alert medium:
+
+```
++------------------+--------------------+
+| my_data.username | my_data.event_type |
++------------------+--------------------+
+|      alice       |       login        |
+|       bob        |     something      |
+|      alice       |   something else   |
++------------------+--------------------+
+```
+
+**!! NOTE !!**
+```
+By default, aggregation time is relative to the current system time, not the time of the match. This means that running Alert over past events will result in different alerts than if Alert had been running while those events occured. This behavior can be changed by setting `aggregate_by_match_time`.
+```
+
 
 ### Alert Content
 
@@ -577,6 +745,8 @@ ITRS Log Analytics allows you to estimate the risk based on the collected data. 
 
 Information on the defined risk for a given field is passed with an alert and multiplied by the value of the Rule Importance parameter.
 
+Risk calculation does not use only logs for its work. Processing the security posture encounters all the information like user behaviour data, performance data, system inventory, running software, vulnerabilities and many more. Having large scope of information Your organization gather an easy way to score its security project and detect all missing spots of the design. Embedded deep expert knowledge is here to help.
+
 #### Create category
 
 To add a new risk Category, go to the **Alert** module, select the **Risks** tab and then **Create Cagtegory**. 
@@ -729,6 +899,10 @@ Based on, for example, Risk_key, you can multiply the value of the value field b
 The value field value is then added to the table on which the risk calculation algorithms are executed.
 
 ### Incidents
+
+SIEM correlation engine allows automatically scores organization security posture showing You what tactic the attacked use and how this puts organization at risk. Every attack can be traced on dashboard reflecting Your security design identifying missing enforcements.
+
+Incidents on the operation of the organization through appropriate points for caught incidents. Hazard situations are presented, using the so-called Mitre ATT / CK matrix. The ITRS Log Analytics system, in addition to native integration with MITER, allows this knowledge to be correlated with other collected data and logs, creating even more complex techniques of behavior detection and analysis. Advanced approach allows for efficient analysis of security design estimation.
 
 The Incident module allows you to handle incidents created by triggered alert rules. 
 
@@ -7897,6 +8071,25 @@ In addition, it is possible to enrich the alert event with the date and time of 
   }
 ```
 
+### Adding a tag to an existing alert
+We can add a tag to an existing alert using the dev tools.
+You can use belowe code.
+
+```bash
+POST alert/_update/example_document_id
+{
+  "doc": {
+    "tags":"example"
+  }
+}
+```
+
+![](https://user-images.githubusercontent.com/42172770/209844235-390cf973-cda7-41e6-8ff1-5636ba87a75a.png)
+
+You can get the corresponding document id in the discovery section.
+
+![](https://user-images.githubusercontent.com/42172770/209844638-2bb0b6fa-32d6-4430-bb6e-c2d4abef1db6.png)
+
 
 ## Siem Module
 
@@ -7956,6 +8149,1176 @@ In this case, rule ``100100`` is used to look for alerts where the source IP add
 Below you can find a screenshot with two SIEM alerts: one that is triggered when a web attack is detected trying to exploit a PHP server vulnerability, and one that informs that the malicious actor has been blocked.
 
 ![](/media/media/image240.png)
+
+### Log data collection
+
+Log data collection is the real-time process of making sense out of the records generated by servers or devices. This component can receive logs through text files or Windows event logs. It can also directly receive logs via remote syslog which is useful for firewalls and other such devices.
+
+The purpose of this process is the identification of application or system errors, mis-configurations, intrusion attempts, policy violations or security issues.
+
+The memory and CPU requirements of the SIEM agent are insignificant since its primary duty is to forward events to the manager. However, on the SIEM manager, CPU and memory consumption can increase rapidly depending on the events per second (EPS) that the manager has to analyze.
+
+#### How it works
+Log files
+The Log analysis engine can be configured to monitor specific files on the servers.
+
+Linux:
+```xml
+<localfile>
+  <location>/var/log/example.log</location>
+  <log_format>syslog</log_format>
+</localfile>
+```
+Windows:
+```xml
+<localfile>
+  <location>C:\myapp\example.log</location>
+  <log_format>syslog</log_format>
+</localfile>
+```
+
+Windows event logs
+Wazuh can monitor classic Windows event logs, as well as the newer Windows event channels.
+Event log:
+```xml
+<localfile>
+  <location>Security</location>
+  <log_format>eventlog</log_format>
+</localfile>
+```
+
+Event channel:
+```xml
+<localfile>
+  <location>Microsoft-Windows-PrintService/Operational</location>
+  <log_format>eventchannel</log_format>
+</localfile>
+```
+
+Remote syslog
+In order to integrate network devices such as routers, firewalls, etc, the log analysis component can be configured to receive log events through syslog. To do that we have two methods available:
+
+One option is for SIEM to receive syslog logs by a custom port:
+```xml
+<ossec_config>
+  <remote>
+    <connection>syslog</connection>
+    <port>513</port>
+    <protocol>udp</protocol>
+    <allowed-ips>192.168.2.0/24</allowed-ips>
+  </remote>
+</ossec_config>
+```
+
+```<connection>syslog</connection>``` indicates that the manager will accept incoming syslog messages from across the network.
+```<port>513</port>``` defines the port that Wazuh will listen to retrieve the logs. The port must be free.
+```<protocol>udp</protocol>``` defines the protocol to listen the port. It can be UDP or TCP.
+```<allowed-ips>192.168.2.0/24</allowed-ips>```defines the network or IP from which syslog messages will be accepted.
+
+The other option store the logs in a plaintext file and monitor that file with SIEM. If a ```/etc/rsyslog.conf``` configuration file is being used and we have defined where to store the syslog logs we can monitor them in SIEM ```ossec.conf``` using a ```<localfile>``` block with ```syslog``` as the log format.
+
+```xml
+<localfile>
+  <log_format>syslog</log_format>
+  <location>/custom/file/path</location>
+</localfile>
+```
+
+```<log_format>syslog</log_format>``` indicates the source log format, in this case, syslog format.
+```<location>/custom/file/path</location>``` indicates where we have stored the syslog logs.
+
+Analysis
+Pre-decoding
+
+In the pre-decoding phase of analysis, static information from well-known fields all that is extracted from the log header.
+```bash
+Feb 14 12:19:04 localhost sshd[25474]: Accepted password for rromero from 192.168.1.133 port 49765 ssh2
+```
+
+Extracted information:
+- hostname: 'localhost'
+- program_name: 'sshd'
+
+Decoding
+
+In the decoding phase, the log message is evaluated to identify what type of log it is and known fields for that specific log type are then extracted.
+Sample log and its extracted info:
+```bash
+Feb 14 12:19:04 localhost sshd[25474]: Accepted password for rromero from 192.168.1.133 port 49765 ssh2
+```
+Extracted information:
+- program name: sshd
+- dstuser: rromero
+- srcip: 192.168.1.133
+
+Rule matching
+In the next phase, the extracted log information is compared to the ruleset to look for matches:
+For the previous example, rule 5715 is matched:
+
+```xml
+<rule id="5715" level="3">
+  <if_sid>5700</if_sid>
+  <match>^Accepted|authenticated.$</match>
+  <description>sshd: authentication success.</description>
+  <group>authentication_success,pci_dss_10.2.5,</group>
+</rule>
+```
+
+Alert
+Once a rule is matched, the manager will create an alert as below:
+```bash
+** Alert 1487103546.21448: - syslog,sshd,authentication_success,pci_dss_10.2.5,
+2017 Feb 14 12:19:06 localhost->/var/log/secure
+Rule: 5715 (level 3) -> 'sshd: authentication success.'
+Src IP: 192.168.1.133
+User: rromero
+Feb 14 12:19:04 localhost sshd[25474]: Accepted password for rromero from 192.168.1.133 port 49765 ssh2
+```
+
+By default, alerts will be generated on events that are important or of security relevance. To store all events even if they do not match a rule, enable the ```<logall>``` option.
+
+Alerts will be stored at ```/var/ossec/logs/alerts/alerts.(json|log)``` and events at ```/var/ossec/logs/archives/archives.(json|log)```. Logs are rotated and an individual directory is created for each month and year.
+
+#### How to collect Windows logs
+
+Windows events can be gathered and forwarded to the manager, where they are processed and alerted if they match any rule. There are two formats to collect Windows logs:
+
+- Eventlog (supported by every Windows version)
+- Eventchannel (for Windows Vista and later versions)
+
+Windows logs are descriptive messages which come with relevant information about events that occur in the system. They are collected and shown at the Event Viewer, where they are classified by the source that generated them.
+
+This information is gathered by the Windows agent, including the event description, the ```system``` standard fields and the specific ```eventdata``` information from the event. Once an event is sent to the manager, it is processed and translated to JSON format, which leads to an easier way of querying and filtering the event fields.
+
+Eventlog uses as well the Windows API to obtain events from Windows logs and return the information in a specific format.
+
+
+Windows Eventlog vs Windows Eventchannel
+Eventlog is supported on every Windows version and can monitor any logs except for particular Applications and Services Logs, this means that the information that can be retrieved is reduced to System, Application and Security channels.
+On the other hand, Eventchannel is maintained since Windows Vista and can monitor the Application and Services logs along with the basic Windows logs. In addition, the use of queries to filter by any field is supported for this log format.
+
+Monitor the Windows Event Log with Wazuh
+To monitor a Windows event log, it is necessary to provide the format as "eventlog" and the location as the name of the event log.
+```xml
+<localfile>
+    <location>Security</location>
+    <log_format>eventlog</log_format>
+</localfile>
+```
+These logs are obtained through Windows API calls and sent to the manager where they will be alerted if they match any rule.
+
+Monitor the Windows Event Channel with Wazuh
+Windows event channels can be monitored by placing their name at the location field from the localfile block and "eventchannel" as the log format.
+```xml
+<localfile>
+    <location>Microsoft-Windows-PrintService/Operational</location>
+    <log_format>eventchannel</log_format>
+</localfile>
+```
+
+Available channels and providers
+Table below shows available channels and providers to monitor included in the Wazuh ruleset:
+
+<table border="1" class="colwidths-given docutils" id="id1">
+<colgroup>
+<col width="2%" />
+<col width="10%" />
+<col width="20%" />
+<col width="5%" />
+<col width="63%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Nr.</th>
+<th class="head">Source</th>
+<th class="head">Channel location</th>
+<th class="head">Provider name</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+	
+<tr class="row-even"><td><p class="first last">1</p>
+</td>
+<td><p class="first last">Application</p>
+</td>
+<td><p class="first last">Application</p>
+</td>
+<td><p class="first last">Any</p>
+</td>
+<td><p class="first last">This log retrieves every event related to system applications management and is one of the main Windows administrative channels along with Security and System.</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">2</p>
+</td>
+<td><p class="first last">Security</p>
+</td>
+<td><p class="first last">Security</p>
+</td>
+<td><p class="first last">Any</p>
+</td>
+<td><p class="first last">This channel gathers information related to users and groups creation, login, logoff and audit policy modifications.</p>
+</td>
+</tr>
+	
+<tr class="row-even"><td><p class="first last">3</p>
+</td>
+<td><p class="first last">System</p>
+</td>
+<td><p class="first last">System</p>
+</td>
+<td><p class="first last">Any</p>
+</td>
+<td><p class="first last">The System channel collects events associated with kernel and service control.</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">4</p>
+</td>
+<td><p class="first last">Sysmon</p>
+</td>
+<td><p class="first last">Microsoft-Windows-Sysmon/Operational</p>
+</td>
+<td><p class="first last">Microsoft-Windows-Sysmon</p>
+</td>
+<td><p class="first last">Sysmon monitors system activity as process creation and termination, network connection and file changes.</p>
+</td>
+</tr>
+	
+<tr class="row-even"><td><p class="first last">5</p>
+</td>
+<td><p class="first last">Windows Defender</p>
+</td>
+<td><p class="first last">Microsoft-Windows-Windows Defender/Operational</p>
+</td>
+<td><p class="first last">Microsoft-Windows-Windows Defender</p>
+</td>
+<td><p class="first last">The Windows Defender log file shows information about the scans passed, malware detection and actions taken against them.</p>
+</td>
+</tr>
+	
+<tr class="row-even"><td><p class="first last">6</p>
+</td>
+<td><p class="first last">McAfee</p>
+</td>
+<td><p class="first last">Application</p>
+</td>
+<td><p class="first last">McLogEvent</p>
+</td>
+<td><p class="first last">This source shows McAfee scan results, virus detection and actions taken against them.</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">7</p>
+</td>
+<td><p class="first last">EventLog</p>
+</td>
+<td><p class="first last">System</p>
+</td>
+<td><p class="first last">Eventlog</p>
+</td>
+<td><p class="first last">This source retrieves information about audit and Windows logs.</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">8</p>
+</td>
+<td><p class="first last">Microsoft Security Essentials</p>
+</td>
+<td><p class="first last">System</p>
+</td>
+<td><p class="first last">Microsoft Antimalware</p>
+</td>
+<td><p class="first last">This software gives information about real-time protection for the system, malware-detection scans and antivirus settings.</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">9</p>
+</td>
+<td><p class="first last">Remote Access</p>
+</td>
+<td><p class="first last">File Replication Service</p>
+</td>
+<td><p class="first last">Any</p>
+</td>
+<td><p class="first last">Other channels (they are grouped in a generic Windows rule file).</p>
+</td>
+</tr>
+	
+<tr class="row-even"><td><p class="first last">10</p>
+</td>
+<td><p class="first last">Terminal Services</p>
+</td>
+<td><p class="first last">Service Microsoft-Windows-TerminalServices-RemoteConnectionManager</p>
+</td>
+<td><p class="first last">Any</p>
+</td>
+<td><p class="first last">Other channels (they are grouped in a generic Windows rule file).</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+When monitoring a channel, events from different providers can be gathered. At the ruleset this is taken into account to monitor logs from McAfee, Eventlog or Security Essentials.
+
+Windows ruleset redesign
+
+In order to ease the addition of new rules, the eventchannel ruleset has been classified according to the channel from which events belong. This will ensure an easier way of maintaining the ruleset organized and find the better place for custom rules. To accomplish this, several modifications have been added:
+
+- Each eventchannel file contains a specific channel's rules.
+- A base file includes every parent rule filtering by the specific channels monitored.
+- Rules have been updated and improved to match the new JSON events, showing relevant information at the rule's description and facilitating the way of filtering them.
+- New channel's rules have been added. By default, the monitored channels are System, Security and Application, these channels have their own file now and include a fair set of rules.
+- Every file has their own rule ID range in order to get it organized. There are a hundred IDs set for the base rules and five hundred for each channel file.
+- In case some rules can't be classified easily or there are so few belonging to a specific channel, they are included at a generic Windows rule file.
+
+To have a complete view of which events are equivalent to the old ones from ```eventlog``` and the previous version of ```eventchannel```, this table classifies every rule according to the source in which they were recorded, including their range of rule IDs and the file where they are described.
+
+<table border="1" class="colwidths-given docutils" id="id1">
+<colgroup>
+<col width="2%" />
+<col width="35%" />
+<col width="28%" />
+<col width="35%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Nr.</th>
+<th class="head">Source</th>
+<th class="head">Rule IDs</th>
+<th class="head">Rule file</th>
+</tr>
+</thead>
+<tbody valign="top">
+
+<tr class="row-even"><td><p class="first last">1</p>
+</td>
+<td><p class="first last">Base rules</p>
+</td>
+<td><p class="first last">60000 - 60099</p>
+</td>
+<td><p class="first last">0575-win-base_rules.xml</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">2</p>
+</td>
+<td><p class="first last">Security</p>
+</td>
+<td><p class="first last">60100 - 60599</p>
+</td>
+<td><p class="first last">0580-win-security_rules.xml</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">3</p>
+</td>
+<td><p class="first last">Application</p>
+</td>
+<td><p class="first last">60600 - 61099</p>
+</td>
+<td><p class="first last">0585-win-application_rules.xml</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">4</p>
+</td>
+<td><p class="first last">System</p>
+</td>
+<td><p class="first last">61100 - 61599</p>
+</td>
+<td><p class="first last">0590-win-system_rules.xml</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">5</p>
+</td>
+<td><p class="first last">Sysmon</p>
+</td>
+<td><p class="first last">61600 - 62099</p>
+</td>
+<td><p class="first last">0595-win-sysmon_rules.xml</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">6</p>
+</td>
+<td><p class="first last">Windows Defender</p>
+</td>
+<td><p class="first last">62100 - 62599</p>
+</td>
+<td><p class="first last">0600-win-wdefender_rules.xml</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">7</p>
+</td>
+<td><p class="first last">McAfee</p>
+</td>
+<td><p class="first last">62600 - 63099</p>
+</td>
+<td><p class="first last">0605-win-mcafee_rules.xml</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">8</p>
+</td>
+<td><p class="first last">Eventlog</p>
+</td>
+<td><p class="first last">63100 - 63599</p>
+</td>
+<td><p class="first last">0610-win-ms_logs_rules.xml</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">9</p>
+</td>
+<td><p class="first last">Microsoft Security Essentials</p>
+</td>
+<td><p class="first last">63600 - 64099</p>
+</td>
+<td><p class="first last">0615-win-ms-se_rules.xml</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">10</p>
+</td>
+<td><p class="first last">Others</p>
+</td>
+<td><p class="first last">64100 - 64599</p>
+</td>
+<td><p class="first last">0620-win-generic_rules.xml</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+#### Configuration
+
+Basic usage
+
+Log data collection is configured in the ```ossec.conf``` file primarily in the ```localfile```, ```remote``` and ```global``` sections. Configuration of log data collection can also be completed in the ```agent.conf``` file to centralize the distribution of these configuration settings to relevant agents.
+
+As in this basic usage example, provide the name of the file to be monitored and the format:
+
+```xml
+<localfile>
+  <location>/var/log/messages</location>
+  <log_format>syslog</log_format>
+</localfile>
+```
+
+Monitoring logs using wildcard patterns for file names
+Wazuh supports posix wildcard patterns, just like listing files in a terminal. For example, to analyze every file that ends with a .log inside the ```/var/log``` directory, use the following configuration:
+
+```xml
+<localfile>
+    <location>/var/log/*.log</location>
+    <log_format>syslog</log_format>
+</localfile>
+```
+
+Monitoring date-based logs
+For log files that change according to the date, you can also specify a strftime format to replace the day, month, year, etc. For example, to monitor the log files like ```C:\Windows\app\log-08-12-15.log```, where 08 is the year, 12 is the month and 15 the day (and it is rolled over every day), configuration is as follows:
+
+```xml
+<localfile>
+    <location>C:\Windows\app\log-%y-%m-%d.log</location>
+    <log_format>syslog</log_format>
+</localfile>
+```
+
+Using environment variables 
+Environment variables like ```%WinDir%``` can be used in the location pattern. The following is an example of reading logs from an IIS server:
+
+```xml
+<localfile>
+    <location>%SystemDrive%\inetpub\logs\LogFiles\W3SVC1\u_ex%y%m%d.log</location>
+    <log_format>iis</log_format>
+</localfile>
+```
+
+Using multiple outputs
+Log data is sent to the agent socket by default, but it is also possible to specify other sockets as output. ```ossec-logcollector``` uses UNIX type sockets to communicate allowing TCP or UDP protocols.
+
+To add a new output socket we need to specify it using the tag ```<socket>``` as shown in the following example configuration:
+
+```xml
+<socket>
+    <name>custom_socket</name>
+    <location>/var/run/custom.sock</location>
+    <mode>tcp</mode>
+    <prefix>custom_syslog: </prefix>
+</socket>
+
+<socket>
+    <name>test_socket</name>
+    <location>/var/run/test.sock</location>
+</socket>
+```
+
+Once the socket is defined, it's possible to add the destination socket for each localfile:
+
+```xml
+<localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/messages</location>
+    <target>agent,test_socket</target>
+</localfile>
+
+<localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/messages</location>
+    <target>custom_socket,test_socket</target>
+</localfile>
+```
+
+### File integrity monitoring
+
+#### How it works
+
+The FIM module is located in the SIEM agent, where runs periodic scans of the system and stores the checksums and attributes of the monitored files and Windows registry keys in a local FIM database. The module looks for the modifications by comparing the new files’ checksums to the old checksums. All detected changes are reported to the SIEM manager.
+
+The new FIM synchronization mechanism ensures the file inventory in the SIEM manager is always updated with respect to the SIEM agent, allowing servicing FIM-related API queries regarding the Wazuh agents. The FIM synchronization is based on periodic calculations of integrity between the SIEM agent’s and the SIEM manager’s databases, updating in the SIEM manager only those files that are outdated, optimizing the data transfer of FIM. Anytime the modifications are detected in the monitored files and/or registry keys, an alert is generated.
+
+By default, each SIEM agent has the syscheck enabled and preconfigured but it is recommended to review and amend the configuration of the monitored host.
+
+File integrity monitoring results for the whole environment can be observed in Energylogserver app in the SIEM > Overview > Integrity monitoring:
+
+![image](https://user-images.githubusercontent.com/42172770/209820768-dd08601e-5d21-4b22-b82b-21aa98c01201.png)
+
+#### Configuration
+
+Syscheck component is configured both in the SIEM manager's and in the SIEM agent's ossec.conf file. This capability can be also configured remotely using centralized configuration and the agent.conf file. The list of all syscheck configuration options is available in the syscheck section.
+
+Configuring syscheck - basic usage
+To configure syscheck, a list of files and directories must be identified. The ```check_all``` attribute of the directories option allows checks of the file size, permissions, owner, last modification date, inode and all the hash sums (MD5, SHA1 and SHA256). By default, syscheck scans selected directories, whose list depends on the default configuration for the host's operating system.
+
+```xml
+<syscheck>
+  <directories check_all="yes">/etc,/usr/bin,/usr/sbin</directories>
+  <directories check_all="yes">/root/users.txt,/bsd,/root/db.html</directories>
+</syscheck>
+```
+
+It is possible to hot-swap the monitored directories. This can be done for Linux, in both the SIEM agent and the SIEM manager, by setting the monitoring of symbolic links to directories. To set the refresh interval, use ```syscheck.symlink_scan_interval``` option found in the ```internal configuration``` of the monitored SIEM agent.
+
+Once, the directory path is removed from the syscheck configuration and the SIEM agent is being restarted, the data from the previously monitored path is no longer stored in the FIM database.
+
+Configuring scan time 
+By default, syscheck scans when the SIEM starts, however, this behavior can be changed with the scan_on_start option.
+
+For the schedluled scans, syscheck has an option to configure the frequency of the system scans. In this example, syscheck is configured to run every 10 hours:
+```xml
+<syscheck>
+  <frequency>36000</frequency>
+  <directories>/etc,/usr/bin,/usr/sbin</directories>
+  <directories>/bin,/sbin</directories>
+</syscheck>
+```
+
+There is an alternative way to schedule the scans using the ```scan_time``` and the ```scan_day``` options. In this example, the scan will run every Saturday at the 10pm. Configuring syscheck that way might help, for example, to set up the scans outside the environment production hours:
+
+```xml
+<syscheck>
+  <scan_time>10pm</scan_time>
+  <scan_day>saturday</scan_day>
+  <directories>/etc,/usr/bin,/usr/sbin</directories>
+  <directories>/bin,/sbin</directories>
+</syscheck>
+```
+
+Configuring real-time monitoring
+Real-time monitoring is configured with the ```realtime``` attribute of the ```directories``` option. This attribute only works with the directories rather than with the individual files. Real-time change detection is paused during periodic syscheck scans and reactivates as soon as these scans are complete:
+
+```xml
+<syscheck>
+  <directories check_all="yes" realtime="yes">c:/tmp</directories>
+</syscheck>
+```
+
+Configuring who-data monitoring 
+Who-data monitoring is configured with the ```whodata``` attribute of the ```directories``` option. This attribute replaces the ```realtime``` attribute, which means that ```whodata``` implies real-time monitoring but adding the who-data information. This functionality uses Linux Audit subsystem and the Microsoft Windows SACL, so additional configurations might be necessary. Check the ```auditing who-data entry``` to get further information:
+
+```xml
+<syscheck>
+  <directories check_all="yes" whodata="yes">/etc</directories>
+</syscheck>
+```
+Configuring reporting new files 
+To report new files added to the system, syscheck can be configured with the alert_new_files option. By default, this feature is enabled on the monitored SIEM agent, but the option is not present in the syscheck section of the configuration:
+
+```xml
+<syscheck>
+  <alert_new_files>yes</alert_new_files>
+</syscheck>
+```
+
+Configuring reporting file changes
+To report the exact content that has been changed in a text file, syscheck can be configured with the ```report_changes``` attribute of the ```directories``` option. ```Report_changes``` should be used with caution as Wazuh copies every single monitored file to a private location.
+
+```xml
+<syscheck>
+  <directories check_all="yes" realtime="yes" report_changes="yes">/test</directories>
+</syscheck>
+```
+
+If some sentive files exist in the monitored with report_changes path, nodiff option can be used. This option disables computing the diff for the listed files, avoiding data leaking by sending the files content changes through alerts:
+
+```xml
+<syscheck>
+  <directories check_all="yes" realtime="yes" report_changes="yes">/test</directories>
+  <nodiff>/test/private</nodiff>
+</syscheck>
+```
+
+Configuring ignoring files and Windows registry entries
+In order to avoid false positives, syscheck can be configured to ignore certain files and directories that do not need to be monitored by using the ```ignore``` option:
+
+```xml
+<syscheck>
+  <ignore>/etc/random-seed</ignore>
+  <ignore>/root/dir</ignore>
+  <ignore type="sregex">.log$|.tmp</ignore>
+</syscheck>
+```
+
+Similar functionality, but for the Windows registries can be achieved by using the ```registry_ignore``` option:
+
+```xml
+<syscheck>
+ <registry_ignore>HKEY_LOCAL_MACHINE\Security\Policy\Secrets</registry_ignore>
+ <registry_ignore type="sregex">\Enum$</registry_ignore>
+</syscheck>
+```
+
+Configuring ignoring files via rules 
+An alternative method to ignore specific files scanned by syscheck is by using rules and setting the rule level to 0. By doing that the alert will be silenced:
+```xml
+<rule id="100345" level="0">
+  <if_group>syscheck</if_group>
+  <match>/var/www/htdocs</match>
+  <description>Ignore changes to /var/www/htdocs</description>
+</rule>
+```
+
+Configuring the alert severity for the monitored files
+With a custom rule, the level of a syscheck alert can be altered when changes to a specific file or file pattern are detected:
+```xml
+<rule id="100345" level="12">
+  <if_group>syscheck</if_group>
+  <match>/var/www/htdocs</match>
+  <description>Changes to /var/www/htdocs - Critical file!</description>
+</rule>
+```
+
+Configuring maximum recursion level allowed 
+It is possible to configure the maximum recursion level allowed for a specific directory by using the recursion_level attribute of the directories option. recursion_level value must be an integer between 0 and 320.
+
+An example configuration may look as follows:
+
+```xml
+<syscheck>
+  <directories check_all="yes">/etc,/usr/bin,/usr/sbin</directories>
+  <directories check_all="yes">/root/users.txt,/bsd,/root/db.html</directories>
+  <directories check_all="yes" recursion_level="3">folder_test</directories>
+</syscheck>
+```
+
+Configuring syscheck process priority 
+To adjust syscheck CPU usage on the monitored system the ```process_priority``` option can be used. It sets the nice value for syscheck process. The default ```process_priority``` is set to 10.
+
+Setting ```process_priority``` value higher than the default, will give syscheck lower priority, less CPU resources and make it run slower. In the example below the nice value for syscheck process is set to maximum:
+```xml
+<syscheck>
+  <process_priority>19</process_priority>
+</syscheck>
+```
+
+Setting process_priority value lower than the default, will give syscheck higher priority, more CPU resources and make it run faster. In the example below the nice value for syscheck process is set to minimum:
+```xml
+<syscheck>
+  <process_priority>-20</process_priority>
+</syscheck>
+```
+
+Configuring where the database is to be stored
+When the SIEM agent starts it performs a first scan and generates its database. By default, the database is created in disk:
+```xml
+<syscheck>
+  <database>disk</database>
+</syscheck>
+```
+Syscheck can be configured to store the database in memory instead by changing value of the database option:
+```xml
+<syscheck>
+  <database>memory</database>
+</syscheck>
+```
+The main advantage of using in memory database is the performance as reading and writing operations are faster than performing them on disk. The corresponding disadvantage is that the memory must be sufficient to store the data.
+
+Configuring synchronization
+Synchronization can be configured to change the synchronization interval, the number of events per second, the queue size and the response timeout:
+```xml
+<syscheck>
+  <synchronization>
+    <enabled>yes</enabled>
+    <interval>5m</interval>
+    <max_interval>1h</max_interval>
+    <response_timeout>30</response_timeout>
+    <queue_size>16384</queue_size>
+    <max_eps>10</max_eps>
+  </synchronization>
+</syscheck>
+```
+
+### Active response
+
+#### How it works 
+
+When is an active response triggered?
+
+An active response is a script that is configured to execute when a specific alert, alert level or rule group has been triggered. Active responses are either stateful or stateless responses. Stateful responses are configured to undo the action after a specified period of time while stateless responses are configured as one-time actions.
+
+Where are active response actions executed?
+
+Each active response specifies where its associated command will be executed: on the agent that triggered the alert, on the manager, on another specified agent or on all agents, which also includes the manager(s).
+
+Active response configuration
+Active responses are configured in the manager by modifying the ossec.conf file as follows:
+1. Create a command
+- In order to configure an active response, a command must be defined that will initiate a certain script in response to a trigger.
+- To configure the active response, define the name of a command using the pattern below and then reference the script to be initiated. Next, define what data element(s) will be passed to the script.
+- Custom scripts that have the ability to receive parameters from the command line may also be used for an active response.
+
+Example:
+```xml
+<command>
+  <name>host-deny</name>
+  <executable>host-deny.sh</executable>
+  <expect>srcip</expect>
+  <timeout_allowed>yes</timeout_allowed>
+</command>
+```
+In this example, the command is called host-deny and initiates the host-deny.sh script. The data element is defined as srcip. This command is configured to allow a timeout after a specified period of time, making it a stateful response.
+
+2. Define the active response
+The active response configuration defines when and where a command is going to be executed. A command will be triggered when a specific rule with a specific id, severity level or source matches the active response criteria. This configuration will further define where the action of the command will be initiated, meaning in which environment (agent, manager, local, or everywhere).
+
+Example:
+```xml
+<active-response>
+  <command>host-deny</command>
+  <location>local</location>
+  <level>7</level>
+  <timeout>600</timeout>
+</active-response>
+```
+In this example, the active response is configured to execute the command that was defined in the previous step. The where of the action is defined as the local host and the when is defined as any time the rule has a level higher than 6. The timeout that was allowed in the command configuration is also defined in the above example.
+The active response log can be viewed at ```/var/ossec/logs/active-responses.log```
+
+Default Active response scripts
+Wazuh is pre-configured with the following scripts for Linux:
+
+<table border="1" class="colwidths-given docutils" id="id1">
+<colgroup>
+<col width="2%" />
+<col width="35%" />
+<col width="28%" />
+<col width="35%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Nr.</th>
+<th class="head">Script name</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+
+<tr class="row-even"><td><p class="first last">1</p>
+</td>
+<td><p class="first last">disable-account.sh</p>
+</td>
+<td><p class="first last">Disables an account by setting passwd-l</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">2</p>
+</td>
+<td><p class="first last">firewall-drop.sh</p>
+</td>
+<td><p class="first last">Adds an IP to the iptables deny list</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">3</p>
+</td>
+<td><p class="first last">firewalld-drop.sh</p>
+</td>
+<td><p class="first last">Adds an IP to the firewalld drop list</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">4</p>
+</td>
+<td><p class="first last">host-deny.sh</p>
+</td>
+<td><p class="first last">Adds an IP to the /etc/hosts.deny file</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">5</p>
+</td>
+<td><p class="first last">ip-customblock.sh</p>
+</td>
+<td><p class="first last">Custom OSSEC block, easily modifiable for custom response</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">6</p>
+</td>
+<td><p class="first last">ipfw_mac.sh</p>
+</td>
+<td><p class="first last">Firewall-drop response script created for the Mac OS</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">7</p>
+</td>
+<td><p class="first last">ipfw.sh</p>
+</td>
+<td><p class="first last">Firewall-drop response script created for ipfw</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">8</p>
+</td>
+<td><p class="first last">npf.sh</p>
+</td>
+<td><p class="first last">Firewall-drop response script created for npf</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">9</p>
+</td>
+<td><p class="first last">ossec-slack.sh</p>
+</td>
+<td><p class="first last">Posts modifications on Slack</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">10</p>
+</td>
+<td><p class="first last">ossec-tweeter.sh</p>
+</td>
+<td><p class="first last">Posts modifications on Twitter</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">11</p>
+</td>
+<td><p class="first last">pf.sh</p>
+</td>
+<td><p class="first last">Firewall-drop response script created for pf</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">12</p>
+</td>
+<td><p class="first last">restart-ossec.sh</p>
+</td>
+<td><p class="first last">Automatically restarts Wazuh when ossec.conf has been changed</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">13</p>
+</td>
+<td><p class="first last">route-null.sh</p>
+</td>
+<td><p class="first last">Adds an IP to null route</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+The following pre-configured scripts are for Windows:
+
+<table border="1" class="colwidths-given docutils" id="id1">
+<colgroup>
+<col width="2%" />
+<col width="48%" />
+<col width="50%" />
+
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Nr.</th>
+<th class="head">Script name</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+
+<tr class="row-even"><td><p class="first last">1</p>
+</td>
+<td><p class="first last">netsh.cmd</p>
+</td>
+<td><p class="first last">Blocks an ip using netsh</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">2</p>
+</td>
+<td><p class="first last">restart-ossec.cmd</p>
+</td>
+<td><p class="first last">Restarts ossec agent</p>
+</td>
+</tr>
+
+<tr class="row-even"><td><p class="first last">32</p>
+</td>
+<td><p class="first last">route-null.cmd</p>
+</td>
+<td><p class="first last">Adds an IP to null route</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+#### Configuration
+
+Basic usage.
+An active response is configured in the ```ossec.conf``` file in the ```Active Response``` and ```Command sections```.
+In this example, the ```restart-ossec``` command is configured to use the ```restart-ossec.sh``` script with no data element. The active response is configured to initiate the ```restart-ossec``` command on the local host when the rule with ID 10005 fires. This is a Stateless response as no timeout parameter is defined.
+
+Command:
+```xml
+<command>
+  <name>restart-ossec</name>
+  <executable>restart-ossec.sh</executable>
+  <expect></expect>
+</command>
+```
+
+Active response:
+```xml
+<active-response>
+  <command>restart-ossec</command>
+  <location>local</location>
+  <rules_id>10005</rules_id>
+</active-response>
+```
+
+Windows automatic remediation.
+In this example, the ```win_rout-null``` command is configured to use the ```route-null.cmd``` script using the data element ```srcip```. The active response is configured to initiate the ```win_rout-null``` command on the local host when the rule has a higher alert level than 7. This is a Stateful response with a timeout set at 900 seconds.
+
+Command:
+```xml
+<command>
+  <name>win_route-null</name>
+  <executable>route-null.cmd</executable>
+  <expect>srcip</expect>
+  <timeout_allowed>yes</timeout_allowed>
+</command>
+```
+
+Active response:
+```xml
+<active-response>
+  <command>win_route-null</command>
+  <location>local</location>
+  <level>8</level>
+  <timeout>900</timeout>
+</active-response>
+```
+
+Block an IP with PF.
+In this example, the ```pf-block``` command is configured to use the ```pf.sh``` script using the data element ```srcip```. The active response is configured to initiate the ```pf-block``` command on agent 001 when a rule in either the "authentication_failed" or "authentication_failures" rule group fires. This is a Stateless response as no timeout parameter is defined.
+
+Command:
+```xml
+<command>
+  <name>pf-block</name>
+  <executable>pf.sh</executable>
+  <expect>srcip</expect>
+</command>
+```
+
+Active response:
+```xml
+<active-response>
+  <command>pf-block</command>
+  <location>defined-agent</location>
+  <agent_id>001</agent_id>
+  <rules_group>authentication_failed|authentication_failures</rules_group>
+</active-response>
+```
+
+Add an IP to the iptables deny list.
+In this example, the ```firewall-drop``` command is configured to use the ```firewall-drop.sh``` script using the data element ```srcip```. The active response is configured to initiate the ```firewall-drop``` command on all systems when a rule in either the "authentication_failed" or "authentication_failures" rule group fires. This is a Stateful response with a timeout of 700 seconds. The ```<repeated_offenders>``` tag increases the timeout period for each subsequent offense by a specific IP address.
+
+Command:
+```xml
+<command>
+  <name>firewall-drop</command>
+  <executable>firewall-drop.sh</executable>
+  <expect>srcip</expect>
+</command>
+```
+
+Active response:
+```xml
+<active-response>
+  <command>firewall-drop</command>
+  <location>all</location>
+  <rules_group>authentication_failed|authentication_failures</rules_group>
+  <timeout>700</timeout>
+  <repeated_offenders>30,60,120</repeated_offenders>
+</active-response>
+```
+
+Active response for a specified period of time .
+The action of a stateful response continues for a specified period of time.
+
+In this example, the ```host-deny``` command is configured to use the ```host-deny.sh``` script using the data element ```srcip```. The active response is configured to initiate the ```host-deny``` command on the local host when a rule with a higher alert level than 6 is fired.
+
+Command:
+```xml
+<command>
+  <name>host-deny</name>
+  <executable>host-deny.sh</executable>
+  <expect>srcip</expect>
+  <timeout_allowed>yes</timeout_allowed>
+</command>
+```
+
+Active response:
+```xml
+<active-response>
+  <command>host-deny</command>
+  <location>local</location>
+  <level>7</level>
+  <timeout>600</timeout>
+</active-response>
+```
+
+Active response that will not be undone.
+The action of a stateless command is a one-time action that will not be undone.
+
+In this example, the ```mail-test``` command is configured to use the ```mail-test.sh``` script with no data element. The active response is configured to initiate the ```mail-test``` command on the server when the rule with ID 1002 fires.
+
+Command:
+```xml
+<command>
+  <name>mail-test</name>
+  <executable>mail-test.sh</executable>
+  <timeout_allowed>no</timeout_allowed>
+  <expect></expect>
+</command>
+```
+
+Active response:
+```xml
+<active-response>
+    <command>mail-test</command>
+    <location>server</location>
+    <rules_id>1002</rules_id>
+ </active-response>
+```
+
+### Vulnerability detection
+
+#### How it works
+
+To be able to detect vulnerabilities, now agents are able to natively collect a list of installed applications, sending it periodically to the manager (where it is stored in local sqlite databases, one per agent). Also, the manager builds a global vulnerabilities database, from publicly available CVE repositories, using it later to cross-correlate this information with the agent's applications inventory data.
+
+The global vulnerabilities database is created automatically, currently pulling data from the following repositories:
+- https://canonical.com: Used to pull CVEs for Ubuntu Linux distributions.
+- https://access.redhat.com: Used to pull CVEs for Red Hat and CentOS Linux distributions.
+- https://www.debian.org: Used to pull CVEs for Debian Linux distributions.
+- https://nvd.nist.gov/: Used to pull CVEs from the National Vulnerability Database.
+
+This database can be configured to be updated periodically, ensuring that the solution will check for the very latest CVEs.
+
+Once the global vulnerability database (with the CVEs) is created, the detection process looks for vulnerable packages in the inventory databases (unique per agent). Alerts are generated when a CVE (Common Vulnerabilities and Exposures) affects a package that is known to be installed in one of the monitored servers. A package is labeled as vulnerable when its version is contained within the affected range of a CVE.
+
+#### Running a vulnerability scan
+
+1. Enable the agent module used to collect installed packages on the monitored system.
+It can be done by adding the following block of settings to your shared agent configuration file:
+
+```xml
+<wodle name="syscollector">
+  <disabled>no</disabled>
+  <interval>1h</interval>
+  <os>yes</os>
+  <packages>yes</packages>
+</wodle>
+```
+
+If you want to scan vulnerabilities in Windows agents, you will also have to add the ```hotfixes``` scan:
+
+```xml
+<wodle name="syscollector">
+  <disabled>no</disabled>
+  <interval>1h</interval>
+  <os>yes</os>
+  <packages>yes</packages>
+  <hotfixes>yes</hotfixes>
+</wodle>
+```
+
+2. Enable the manager module used to detect vulnerabilities.
+You can do this adding a block like the following to your manager configuration file:
+
+```xml
+<vulnerability-detector>
+    <enabled>yes</enabled>
+    <interval>5m</interval>
+    <ignore_time>6h</ignore_time>
+    <run_on_start>yes</run_on_start>
+
+    <provider name="canonical">
+        <enabled>yes</enabled>
+        <os>trusty</os>
+        <os>xenial</os>
+        <os>bionic</os>
+        <os>focal</os>
+        <update_interval>1h</update_interval>
+    </provider>
+
+    <provider name="debian">
+        <enabled>yes</enabled>
+        <os>wheezy</os>
+        <os>stretch</os>
+        <os>jessie</os>
+        <os>buster</os>
+        <update_interval>1h</update_interval>
+    </provider>
+
+    <provider name="redhat">
+        <enabled>yes</enabled>
+        <update_from_year>2010</update_from_year>
+        <update_interval>1h</update_interval>
+    </provider>
+
+    <provider name="nvd">
+        <enabled>yes</enabled>
+        <update_from_year>2010</update_from_year>
+        <update_interval>1h</update_interval>
+    </provider>
+
+</vulnerability-detector>
+```
+
+Remember to restart the manager to apply the changes.
+
+You can also check the vulnerability dashboards to have an overview of your agents' status.
+
+![image](https://user-images.githubusercontent.com/42172770/209840302-f405052b-d03e-430f-a56a-1d5882eaca8f.png)
+
 
 ## Tenable.sc
 
@@ -8047,14 +9410,20 @@ Qualys Guard is vulnerability management tool, which make a scan systems and env
   ```
 
 
-## UBA
+## UEBA
 
-The UBA module enables premium features of Energy Logserver SIEM Plan. This is module which collects knowledge and functionalities which were always available in our system. This cybersecurity approach helps analytics to discover threads in user and entities behaviour. Module tracks user or resource actions and scans common behaviour patterns. With UBA system provides deep knowledge of daily trends in actions enabling SOC teams to detect any abnormal and suspicious activities. UBA differs a lot from regular SIEM approach based on logs analytics in time. The module focus on  actions and not the logs itself. Every user, host or other resource is identified as an entity in the system and its behaviour describes its work. Energy Logserver provide new data schema that mark each action over time. Underlying Energy search engine analyse incoming data in order to identify log corresponding to action. We leave the log for SIEM use cases, but incoming data is associated with an action categories. New data model stores actions for each entity and mark them down as metadata stored in individual index. Once tracking is done, SOC teams can investigate patterns for single action among many entities or many actions for a single user/entity. This unique approach creates an activity map for everyone working in the organization and for any resource. Created dataset is stored in time. All actions can be analysed for understanding the trend and comparing it with historical profile. UBA is designed to give information about the common type of action that user or entity performs and allows to identify specific time slots for each. Any differences noted, abnormal occurances of an event can be a subject of automatic alerts. UBA comes with defined dashboards which shows discovered actions and metrics for them.
+ITRS Log Analytics system allows building and maintaining user's database model (UBA) and computers (EBA), and uses build in mechanisms of Machine Learning and Artificial Intelligence. Both have been implemented withing UEBA module.
+
+The UEBA module enables premium features of ITRS Log Analytics SIEM Plan. This is module which collects knowledge and functionalities which were always available in our system. This cybersecurity approach helps analytics to discover threads in user and entities behaviour. Module tracks user or resource actions and scans common behaviour patterns. With UEBA system provides deep knowledge of daily trends in actions enabling SOC teams to detect any abnormal and suspicious activities. UEBA differs a lot from regular SIEM approach based on logs analytics in time.
+
+The module focus on actions and not the logs itself. Every user, host or other resource is identified as an entity in the system and its behaviour describes its work. ITRS Log Analytics provide new data schema that mark each action over time. Underlying Energy search engine analyse incoming data in order to identify log corresponding to action. We leave the log for SIEM use cases, but incoming data is associated with an action categories. New data model stores actions for each entity and mark them down as metadata stored in individual index.
+
+Once tracking is done, SOC teams can investigate patterns for single action among many entities or many actions for a single user/entity. This unique approach creates an activity map for everyone working in the organization and for any resource. Created dataset is stored in time. All actions can be analysed for understanding the trend and comparing it with historical profile. UEBA is designed to give information about the common type of action that user or entity performs and allows to identify specific time slots for each. Any differences noted, abnormal occurances of an event can be a subject of automatic alerts. UEBA comes with defined dashboards which shows discovered actions and metrics for them.
 
 ![](/media/media/image238.png)
 
 It is easy to filter presented data with single username/host or a group of users/hosts using query syntax. With help of saved searches SOC can create own outlook to stay focused on users at high risk of an attack.
-Energy Logserver is made for working with data. UBA gives new analytics approach, but what is more important it brings new metrics that we can work with. Artificial Intelligence functionality build in Energy Logserver help to calculate forecast for each action over single user or entire organization. In the same time thanks to extended set of rule types, Energy Logserver can correlate behavioral analysis with other data collected from environment. Working with Energy Logserver SIEM Plan with UBA module greatly enlarge security analytics scope.
+ITRS Log Analytics is made for working with data. UEBA gives new analytics approach, but what is more important it brings new metrics that we can work with. Artificial Intelligence functionality build in ITRS Log Analytics help to calculate forecast for each action over single user or entire organization. In the same time thanks to extended set of rule types, ITRS Log Analytics can correlate behavioral analysis with other data collected from environment. Working with ITRS Log Analytics SIEM Plan with UEBA module greatly enlarge security analytics scope.
 
 ## BCM Remedy
 
@@ -8073,6 +9442,7 @@ It is possible to close the incident in the external system using a parameter ad
   recovery: true
   recovery_command: "mail -s 'Recovery Alert for rule RULE_NAME' user@example.com < /dev/null"
 ```
+
 ## SIEM Virtus Total integration
 
 This integration utilizes the VirusTotal API to detect malicious content within the files monitored by **File Integrity Monitoring**. This integration functions as described below:
@@ -8135,7 +9505,7 @@ To start the custom integration, the `ossec.conf` file, including the block inte
  - event_location: Sets an alert source filter.
  - alert_format: Indicates that the script receives the alerts in JSON format (recommended). By default, the script will receive the alerts in full_log format.
 
-## License service
+## License Service
 
 License service configuration is required when using the SIEM Plan license. To configure the License Service, set the following parameters in the configuration file:
 
@@ -8157,3 +9527,4 @@ elasticsearch_connection:
 
   https: true
 ```
+>>>>>>> Stashed changes

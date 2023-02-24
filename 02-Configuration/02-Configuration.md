@@ -1298,7 +1298,7 @@ Add an exception to the firewall to allow outgoing connection to TCP port master
 
   To install agent you can use interchangeably the following methods:
 
-    - Method 1 - use installer:
+  - Method 1 - use installer:
 
   ```bash
   # cd "C:\Program Files\MasterAgent"
@@ -1617,7 +1617,290 @@ winlogbeat.exe test config
 winlogbeat.exe test output
 ```
 
-##### Filebeat
+##### Drop event
+
+We can also drop events on the agent side. To do this we need to use the ```drop_event``` processor
+
+
+```yml
+processors:
+  - drop_event:
+      when:
+        condition
+```
+
+Each condition receives a field to compare. You can specify multiple fields under the same condition by using ```AND``` between the fields (for example, ```field1 AND field2```).
+
+For each field, you can specify a simple field name or a nested map, for example ```dns.question.name```.
+
+See Exported fields for a list of all the fields that are exported by Winlogbeat.
+
+The supported conditions are:
+- equals
+- contains
+- regexp
+- range
+- network
+- has_fields
+- or
+- and
+- not
+
+```equals```.
+With the ```equals``` condition, you can compare if a field has a certain value. The condition accepts only an integer or a string value.
+
+For example, the following condition checks if the response code of the HTTP transaction is 200:
+
+```yml
+equals:
+  http.response.code: 200
+```
+
+```contains```.
+The ```contains``` condition checks if a value is part of a field. The field can be a string or an array of strings. The condition accepts only a string value.
+
+For example, the following condition checks if an error is part of the transaction status:
+
+```yml
+contains:
+  status: "Specific error"
+```
+
+```regexp```.
+The ```regexp``` condition checks the field against a regular expression. The condition accepts only strings.
+
+For example, the following condition checks if the process name starts with ```foo```:
+
+```yml
+regexp:
+  system.process.name: "^foo.*"
+```
+
+```range```.
+The range condition checks if the field is in a certain ```range``` of values. The condition supports ```lt, lte, gt and gte```. The condition accepts only integer or float values.
+
+For example, the following condition checks for failed HTTP transactions by comparing the ```http.response.code``` field with 400.
+
+```yml
+range:
+  http.response.code:
+    gte: 400
+```
+This can also be written as:
+```yml
+range:
+  http.response.code.gte: 400
+```
+
+The following condition checks if the CPU usage in percentage has a value between 0.5 and 0.8.
+```yml
+range:
+  system.cpu.user.pct.gte: 0.5
+  system.cpu.user.pct.lt: 0.8
+```
+
+```network```.
+The ```network``` condition checks if the field is in a certain IP network range. Both IPv4 and IPv6 addresses are supported. The network range may be specified using CIDR notation, like "192.0.2.0/24" or "2001:db8::/32", or by using one of these named ranges:
+- ```loopback``` - Matches loopback addresses in the range of 127.0.0.0/8 or ::1/128.
+- ```unicast``` - Matches global unicast addresses defined in RFC 1122, RFC 4632, and RFC 4291 with the exception of the IPv4 broadcast address (```255.255.255.255```). This includes private address ranges.
+- ```multicast``` - Matches multicast addresses.
+- ```interface_local_multicast``` - Matches IPv6 interface-local multicast addresses.
+- ```link_local_unicast``` - Matches link-local unicast addresses.
+- ```link_local_multicast``` - Matches link-local multicast addresses.
+- ```private``` - Matches private address ranges defined in RFC 1918 (IPv4) and RFC 4193 (IPv6).
+- ```public``` - Matches addresses that are not loopback, unspecified, IPv4 broadcast, link local unicast, link local multicast, interface local multicast, or private.
+- ```unspecified``` - Matches unspecified addresses (either the IPv4 address "0.0.0.0" or the IPv6 address "::").
+
+The following condition returns true if the source.ip value is within the private address space.
+
+```yml
+network:
+  source.ip: private
+```
+
+This condition returns true if the ```destination.ip``` value is within the IPv4 range of ```192.168.1.0``` - ```192.168.1.255```.
+
+```yml
+network:
+  destination.ip: '192.168.1.0/24'
+```
+
+And this condition returns true when ```destination.ip``` is within any of the given subnets.
+
+```yml
+network:
+  destination.ip: ['192.168.1.0/24', '10.0.0.0/8', loopback]
+```
+
+```has_fields```.
+The ```has_fields``` condition checks if all the given fields exist in the event. The condition accepts a list of string values denoting the field names.
+
+For example, the following condition checks if the ```http.response.code``` field is present in the event.
+```yml
+has_fields: ['http.response.code']
+```
+
+```or```.
+The ```or``` operator receives a list of conditions.
+```yml
+or:
+  - <condition1>
+  - <condition2>
+  - <condition3>
+  ...
+```
+
+For example, to configure the condition ```http.response.code = 304 OR http.response.code = 404```:
+
+```yml
+or:
+  - equals:
+      http.response.code: 304
+  - equals:
+      http.response.code: 404
+```
+
+```and```.
+The ```and``` operator receives a list of conditions.
+
+```yml
+and:
+  - <condition1>
+  - <condition2>
+  - <condition3>
+  ...
+```
+
+For example, to configure the condition ```http.response.code = 200 AND status = OK```:
+
+```yml
+or:
+  - <condition1>
+  - and:
+    - <condition2>
+    - <condition3>
+```
+
+```not```.
+The ```not``` operator receives the condition to negate.
+
+```yml
+not:
+  <condition>
+```
+
+For example, to configure the condition ```NOT status = OK```:
+
+```yml
+not:
+  equals:
+    status: OK
+```
+
+##### Internal queue
+
+Winlogbeat uses an internal queue to store events before publishing them. The queue is responsible for buffering and combining events into batches that can be consumed by the outputs. The outputs will use bulk operations to send a batch of events in one transaction.
+
+You can configure the type and behavior of the internal queue by setting options in the ```queue``` section of the ```winlogbeat.yml``` config file. Only one queue type can be configured.
+
+This sample configuration sets the memory queue to buffer up to 4096 events:
+
+```yml
+queue.mem:
+  events: 4096
+```
+
+Configure the memory queue
+The memory queue keeps all events in memory.
+
+If no flush interval and no number of events to flush is configured, all events published to this queue will be directly consumed by the outputs. To enforce spooling in the queue, set the ```flush.min_events``` and ```flush.timeout options```.
+
+By default ```flush.min_events``` is set to 2048 and ```flush.timeout``` is set to 1s.
+
+The output’s ```bulk_max_size``` setting limits the number of events being processed at once.
+
+The memory queue waits for the output to acknowledge or drop events. If the queue is full, no new events can be inserted into the memory queue. Only after the signal from the output will the queue free up space for more events to be accepted.
+
+This sample configuration forwards events to the output if 512 events are available or the oldest available event has been waiting for 5s in the queue:
+
+```yml
+queue.mem:
+  events: 4096
+  flush.min_events: 512
+  flush.timeout: 5s
+```
+
+Configuration options
+
+You can specify the following options in the ```queue.mem``` section of the ```winlogbeat.yml``` config file:
+```events```
+Number of events the queue can store.
+The default value is ```4096``` events.
+
+```flush.min_events```
+Minimum number of events required for publishing. If this value is set to 0, the output can start publishing events without additional waiting times. Otherwise the output has to wait for more events to become available.
+
+The default value is ```2048```.
+
+```flush.timeout```
+Maximum wait time for flush.min_events to be fulfilled. If set to 0s, events will be immediately available for consumption.
+The default value is 1s.
+
+Configure disk queue
+The disk queue stores pending events on the disk rather than main memory. This allows Beats to queue a larger number of events than is possible with the memory queue, and to save events when a Beat or device is restarted. This increased reliability comes with a performance tradeoff, as every incoming event must be written and read from the device’s disk. However, for setups where the disk is not the main bottleneck, the disk queue gives a simple and relatively low-overhead way to add a layer of robustness to incoming event data.
+
+The disk queue is expected to replace the file spool in a future release.
+
+To enable the disk queue with default settings, specify a maximum size:
+```yml
+queue.disk:
+  max_size: 10GB
+```
+
+The queue will use up to the specified maximum size on disk. It will only use as much space as required. For example, if the queue is only storing 1GB of events, then it will only occupy 1GB on disk no matter how high the maximum is. Queue data is deleted from disk after it has been successfully sent to the output.
+
+Configuration options
+
+You can specify the following options in the ```queue.disk``` section of the ```winlogbeat.yml``` config file:
+
+```path```
+The path to the directory where the disk queue should store its data files. The directory is created on startup if it doesn’t exist.
+
+The default value is ```"${path.data}/diskqueue"```.
+
+```max_size (required)```
+The maximum size the queue should use on disk. Events that exceed this maximum will either pause their input or be discarded, depending on the input’s configuration.
+
+A value of 0 means that no maximum size is enforced, and the queue can grow up to the amount of free space on the disk. This value should be used with caution, as completely filling a system’s main disk can make it inoperable. It is best to use this setting only with a dedicated data or backup partition that will not interfere with Winlogbeat or the rest of the host system.
+
+The default value is ```10GB```.
+
+```segment_size```
+Data added to the queue is stored in segment files. Each segment contains some number of events waiting to be sent to the outputs, and is deleted when all its events are sent. By default, segment size is limited to 1/10 of the maximum queue size. Using a smaller size means that the queue will use more data files, but they will be deleted more quickly after use. Using a larger size means some data will take longer to delete, but the queue will use fewer auxiliary files. It is usually fine to leave this value unchanged.
+
+The default value is ```max_size / 10```.
+
+```read_ahead```
+The number of events that should be read from disk into memory while waiting for an output to request them. If you find outputs are slowing down because they can’t read as many events at a time, adjusting this setting upward may help, at the cost of higher memory usage.
+
+The default value is ```512```.
+
+```write_ahead```
+The number of events the queue should accept and store in memory while waiting for them to be written to disk. If you find the queue’s memory use is too high because events are waiting too long to be written to disk, adjusting this setting downward may help, at the cost of reduced event throughput. On the other hand, if inputs are waiting or discarding events because they are being produced faster than the disk can handle, adjusting this setting upward may help, at the cost of higher memory usage.
+
+The default value is ```2048```.
+
+```retry_interval```
+Some disk errors may block operation of the queue, for example a permission error writing to the data directory, or a disk full error while writing an event. In this case, the queue reports the error and retries after pausing for the time specified in retry_interval.
+
+The default value is ```1s``` (one second).
+
+```max_retry_interval```
+When there are multiple consecutive errors writing to the disk, the queue increases the retry interval by factors of 2 up to a maximum of max_retry_interval. Increase this value if you are concerned about logging too many errors or overloading the host system if the target disk becomes unavailable for an extended time.
+
+The default value is ```30s``` (thirty seconds).
+
+#### Filebeat
 
 ###### Installation
 
@@ -3158,7 +3441,7 @@ Configuration file: `/opt/cerebro/conf/application.conf`
       curl -k -XPOST 'https://192.168.3.11:5602/auth/login' -H 'mimeType: application/      -www-form-urlencoded' -d 'user=logserver&password=logserver' -c cookie.txt
       curl -k -XGET 'https://192.168.3.11:5602' -b cookie.txt
    ```
-   
+
 ## Field level security
 You can restrict access to specific fields in documents for a user role. For example: the user can only view specific fields in the Discovery module, other fields will be inaccessible to the user. You can do this by:
 
@@ -3186,27 +3469,27 @@ You can now log in as a user with a new role, the user in the Discovery module s
 The GUI language can be changed as follows:
 
 1. Add `.i18nrc.json` to `/usr/share/kibana/` directory:
-
-  ```json
-  {
-      "translations": ["translations/ja-JP.json"]
-  }
-  ```
+   
+   ```json
+   {
+       "translations": ["translations/ja-JP.json"]
+   }
+   ```
 
 2. Upload a translation to  /usr/share/kibana/translations/ja-JP.json directory
 
 3. Set the permission:
 
-  `# chown -R kibana:kibana /usr/share/kibana/translations/`
+   `# chown -R kibana:kibana /usr/share/kibana/translations/`
 
 4. Set in `kibana.yml` file:
 
-  `i18n.locale: "ja-JP"`
+   `i18n.locale: "ja-JP"`
 
 5. Restart:
 
- `# systemctl restart kibana`
+   `# systemctl restart kibana`
 
 6. Finally the result should be as shown in the picture:
 
-![](/media/media/image255.png)
+   ![](/media/media/image255.png)

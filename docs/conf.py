@@ -53,7 +53,7 @@ root_doc = 'index'
 
 # General information about the project.
 project = u'ITRS-Log-Analytics-7.x'
-copyright = str(datetime.now().year), EMCA Software'
+copyright = str(datetime.now().year)+', EMCA Software'
 author = 'EMCA-IT'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -428,14 +428,14 @@ context = {
     ("7.0.1", "/en/7.0.1/"),
     ],
     'downloads': [ 
-    ("pdf", "//kb.energylogserver.com/_/downloads/en/latest/pdf/"),
-    ("html", "//kb.energylogserver.com/_/downloads/en/latest/htmlzip/"),
-    ("epub", "//kb.energylogserver.com/_/downloads/en/latest/epub/"),
+    ("pdf", "//itrs-log-analytics-7x.readthedocs.io/_/downloads/en/latest/pdf/"),
+    ("html", "//itrs-log-analytics-7x.readthedocs.io/_/downloads/en/latest/htmlzip/"),
+    ("epub", "//itrs-log-analytics-7x.readthedocs.io/_/downloads/en/latest/epub/"),
     ],
     'subprojects': [ 
     ],
-    'slug': 'energy-log-server-7x',
-    'name': u'Energy-Log-Server-7.x',
+    'slug': 'itrs-log-analytics-7x',
+    'name': u'ITRS-Log-Analytics-7.x',
     'rtd_language': u'en',
     'programming_language': u'words',
     'canonical_url': '',
@@ -445,7 +445,7 @@ context = {
     'api_host': 'https://readthedocs.org',
     'github_user': 'emca-it',
     'proxied_api_host': '/_',
-    'github_repo': 'Energy-Log-Server-7.x',
+    'github_repo': 'ITRS-Log-Analytics-7.x',
     'github_version': 'master',
     'display_github': True,
     'bitbucket_user': 'None',

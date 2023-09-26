@@ -2,11 +2,11 @@ ITRS Log Analytics 7.x User Guide
 ------------------------------------
 
 .. toctree::
-        :maxdepth: 7
-        :caption: Installation
+   :maxdepth: 7
+   :caption: Installation
 
-       00-00-00-About
-       01-Installation/01-Installation
+   00-00-00-About
+   01-Installation/01-Installation
 
 .. toctree::
         :maxdepth: 7

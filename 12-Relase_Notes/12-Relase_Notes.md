@@ -87,7 +87,7 @@
 - CMDB: Browser-based Time Zone
 - Improved error handling when reloading a license (_logserver/license/reload_)
 - Archive: deleting tasks with multiselect option
-- Unification and organization of Energy Logserver system APIs
+- Unification and organization of ITRS Log Analytics system APIs
 - Alert: WebHook: added support for nested fields in http post payload
 - Agents: built-in agents templates updated to 7.17.11
 

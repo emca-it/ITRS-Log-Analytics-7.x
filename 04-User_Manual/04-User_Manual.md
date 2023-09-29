@@ -2406,7 +2406,7 @@ Document sample:
 
 ## Archive
 
-The Archive module allows you to create compressed data files ([zstd](https://github.com/facebook/zstd)) from Elasticsearch indices. The archive checks the age of each document in the index and if it is older than defined in the job, it is copied to the archive file.
+The Archive module allows you to create compressed data files ([zstd](https://github.com/facebook/zstd)) from Elasticsearch indexes. The archive checks the age of each document in the index and if it is older than defined in the job, it is copied to the archive file.
 
 ### Configuration
 
@@ -2430,26 +2430,23 @@ archive.archivefolderpath: '/var/lib/elastic_archive_test'
 
 1. From the main navigation go to the "Archive" module.
 
+   ![](/media/media/image155.png)
+
 2. On the "Archive" tab select "Create Task" and define the following parameters:
 
-   - `Index pattern` - for the indices that will be archived, for example, `syslog*`
-   - `Timestamp Field` - time field of the indices (default __@timestamp__)
-   - `Older than (days)` - number of days after which documents will be archived
-   - `Field names filter` - filter fields that should be archived
-   - `Encrypt archives` - after enabling encryption, prompt with two password fields will be shown.
+   - `Index pattern`- for the indexes that will be archived, for example, `syslog*` ;
+   - `Older than (days)` - number of days after which documents will be archived;
    - `Schedule task` (crontab format) - the work schedule of the ordered task.
 
-   ![](/media/media/04-archive_create-archive-task.png)
+   ![](/media/media/image156.png)
 
 #### Task List
 
-In the `Task List`, you can follow the current status of ordered tasks. You can modify the task scheduler or delete a single or many tasks at once.
+In the `Task List`, you can follow the current status of ordered tasks. You can modify the task scheduler or delete a ordered task.
 
-![](/media/media/04-archive_archive-task-list.png)
+![](/media/media/image157.png)
 
 If the archiving task finds an existing archive file that matches the data being archived, it will check the number of documents in the archive and the number of documents in the index. If there is a difference in the number of documents then new documents will be added to the archive file.
-
-To show more details of the task, click on the details cell of the desired row.
 
 ### Archive Search
 
@@ -2471,15 +2468,15 @@ The searching process will can take a long time. On the `Task List`, you can fol
 
 ![](/media/media/image159.png)
 
-### Archive Restore
+### Archive Upload
 
-The Archive Restore module moves data from the archive to the Elasticsearch index and makes it available online.
+The Archive Upload module moves data from the archive to the Elasticsearch index and make it online.
 
-#### Create Restore task
+#### Create Upload task
 
 1. From the main navigation go to the `Archive` module.
 
-2. On the `Restore` tab select `Create Task` and define the following parameters:
+2. On the `Upload` tab select `Create Task` and define the following parameters:
 
 - `Destination index` - If a destination index does not exist it will be created. If exists data will be appended.
 - `File name` - list of archive files that will be recovered to Elasticsearch index.

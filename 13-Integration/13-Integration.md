@@ -4,9 +4,9 @@
 
 ### Logstash ###
 
-1. In Energy Logserver `naemon_beat.conf` set up `ELASTICSEARCH_HOST`, `ES_PORT`, `FILEBEAT_PORT`
+1. In ITRS Log Analytics `naemon_beat.conf` set up `ELASTICSEARCH_HOST`, `ES_PORT`, `FILEBEAT_PORT`
 
-2. Copy Energy Logserver `naemon_beat.conf` to `/etc/logstash/conf.d`
+2. Copy ITRS Log Analytics `naemon_beat.conf` to `/etc/logstash/conf.d`
 
 3. Based on "FILEBEAT_PORT" if firewall is running:
 
@@ -20,9 +20,9 @@
 4. Based on amount of data that elasticsearch will receive you can also choose whether you want index creation to be based on moths or days:
 
    ```bash
-   index => "Energy Logserver-naemon-%{+YYYY.MM}"
+   index => "ITRS Log Analytics-naemon-%{+YYYY.MM}"
    or
-   index => "Energy Logserver-naemon-%{+YYYY.MM.dd}"
+   index => "ITRS Log Analytics-naemon-%{+YYYY.MM.dd}"
    ```
 
    
@@ -50,9 +50,9 @@
 
 2. Install template by running:
    `./naemon_template.sh`
-### Energy Logserver Monitor ###
+### ITRS Log Analytics Monitor ###
 
-1. On Energy Logserver Monitor host install filebeat (for instance via rpm `https://www.elastic.co/downloads/beats/filebeat`)
+1. On ITRS Log Analytics Monitor host install filebeat (for instance via rpm `https://www.elastic.co/downloads/beats/filebeat`)
 1. In `/etc/filebeat/filebeat.yml` add:
 
 		#=========================== Filebeat inputs =============================
@@ -92,17 +92,17 @@ At this moment there should be a new index on the Elasticsearch node:
 Example output:
 
 		health status index                 uuid                   pri rep docs.count docs.deleted store.size pri.store.size
-		green  open   Energy Logserver-naemon-2018.11    gO8XRsHiTNm63nI_RVCy8w   1   0      23176            0      8.3mb          8.3mb
+		green  open   ITRS Log Analytics-naemon-2018.11    gO8XRsHiTNm63nI_RVCy8w   1   0      23176            0      8.3mb          8.3mb
 
 If the index has been created, in order to browse and visualise the data, "index pattern" needs to be added in Kibana.
 
 ## OP5 - Performance data ##
 
-Below instruction requires that between Energy Logserver node and Elasticsearch node is working Logstash instance.
+Below instruction requires that between ITRS Log Analytics node and Elasticsearch node is working Logstash instance.
 
 ### Elasticsearch ###
-1.	First, settings section in *Energy Logservertemplate.sh* should be adjusted, either:
-	- there is a default template present on Elasticsearch that already covers shards and replicas then settings sections should be removed from the *Energy Logservertemplate.sh* before executing
+1.	First, settings section in *ITRS Log Analyticstemplate.sh* should be adjusted, either:
+	- there is a default template present on Elasticsearch that already covers shards and replicas then settings sections should be removed from the *ITRS Log Analyticstemplate.sh* before executing
 	- there is no default template - shards and replicas should be adjusted for you environment (keep in mind replicas can be added later, while changing shards count on existing index requires 
 		reindexing it)
 
@@ -111,25 +111,25 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
 			  "number_of_replicas": 0
 			}
 
-1. In URL *Energy Logserverperfdata* is a name for the template - later it can be search for or modify with it.
+1. In URL *ITRS Log Analyticsperfdata* is a name for the template - later it can be search for or modify with it.
 
-1. The "*template*" is an index pattern. New indices matching it will have the settings and mapping applied automatically (change it if you index name for *Energy Logserver perfdata* is different).
+1. The "*template*" is an index pattern. New indices matching it will have the settings and mapping applied automatically (change it if you index name for *ITRS Log Analytics perfdata* is different).
 
 1. Mapping name should match documents type:
 
     ```
     "mappings": {
-    	  "Energy Logserverperflogs"
+    	  "ITRS Log Analyticsperflogs"
     ```
 
-    Running Energy Logservertemplate.sh will create a template (not index) for Energy Logserver perf data documents.
+    Running ITRS Log Analyticstemplate.sh will create a template (not index) for ITRS Log Analytics perf data documents.
 
 ### Logstash ###
 
-1.	The *Energy Logserverperflogs.conf* contains example of *input/filter/output* configuration. It has to be copied to */etc/logstash/conf.d/*. Make sure that the *logstash* has permissions to read the configuration files:
+1.	The *ITRS Log Analyticsperflogs.conf* contains example of *input/filter/output* configuration. It has to be copied to */etc/logstash/conf.d/*. Make sure that the *logstash* has permissions to read the configuration files:
 	
 	```bash
-	chmod 664 /etc/logstash/conf.d/Energy Logserverperflogs.conf
+	chmod 664 /etc/logstash/conf.d/ITRS Log Analyticsperflogs.conf
 	```
 	
 	
@@ -138,7 +138,7 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
 
    ```bash
    port => PORT_NUMBER
-   type => "Energy Logserverperflogs"
+   type => "ITRS Log Analyticsperflogs"
    ```
 
    
@@ -149,7 +149,7 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
 
    ```bash
    hosts => ["127.0.0.1:9200"]
-   index => "Energy Logserver-perflogs-%{+YYYY.MM.dd}"
+   index => "ITRS Log Analytics-perflogs-%{+YYYY.MM.dd}"
    ```
 
 5. Port has to be opened on a firewall:
@@ -171,7 +171,7 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
    sudo kill -1 LOGSTASH_PID
    ```
 
-### Energy Logserver Monitor ###
+### ITRS Log Analytics Monitor ###
 
 1. You have to decide wether FileBeat or NetCat will be used. In case of Filebeat - skip to the second step. Otherwise:
 
@@ -203,10 +203,10 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
      
      
 
-2. In case of running single Energy Logserver node, there is no problem with the setup. In case of a peered environment *$do_on_host* variable has to be set up and the script *process-service-perfdata-log.pl/process-host-perfdata-log.pl* has to be propagated on all of Energy Logserver nodes:
+2. In case of running single ITRS Log Analytics node, there is no problem with the setup. In case of a peered environment *$do_on_host* variable has to be set up and the script *process-service-perfdata-log.pl/process-host-perfdata-log.pl* has to be propagated on all of ITRS Log Analytics nodes:
 
    ```bash
-   16 $do_on_host = "EXAMPLE_HOSTNAME"; # Energy Logserver node name to run the script on
+   16 $do_on_host = "EXAMPLE_HOSTNAME"; # ITRS Log Analytics node name to run the script on
    17 $hostName = hostname; # will read hostname of a node running the script
    ```
 
@@ -258,7 +258,7 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
    paths:
      - /opt/monitor/var/service_performance.log
      - /opt/monitor/var/host_performance.log
-   tags: ["Energy Logserverperflogs"]
+   tags: ["ITRS Log Analyticsperflogs"]
      output.logstash:
    # The Logstash hosts
      hosts: ["LOGSTASH_IP:LOGSTASH_PORT"]
@@ -277,22 +277,22 @@ Below instruction requires that between Energy Logserver node and Elasticsearch 
 
    ### Kibana
 
-At this moment there should be new index on the Elasticsearch node with performance data documents from Energy Logserver Monitor. 
+At this moment there should be new index on the Elasticsearch node with performance data documents from ITRS Log Analytics Monitor. 
 Login to an Elasticsearch node and run: `curl -XGET '127.0.0.1:9200/_cat/indices?v'` Example output:
 
 	health status index                      pri rep docs.count docs.deleted store.size pri.store.size
 	green  open   auth                       5   0          7         6230      1.8mb          1.8mb
-	green  open   Energy Logserver-perflogs-2018.09.14    5   0      72109            0     24.7mb         24.7mb
+	green  open   ITRS Log Analytics-perflogs-2018.09.14    5   0      72109            0     24.7mb         24.7mb
 
 After a while, if there is no new index make sure that: 
 
-- Naemon is runnig on Energy Logserver node
+- Naemon is runnig on ITRS Log Analytics node
 - Logstash service is running and there are no errors in: */var/log/logstash/logstash-plain.log* 
 - Elasticsearch service is running an there are no errors in: */var/log/elasticsearch/elasticsearch.log*
 
 If the index has been created, in order to browse and visualize the data “*index pattern*” needs to be added to Kibana. 
 
-1. After logging in to Kibana GUI go to *Settings* tab and add *Energy Logserver-perflogs-** pattern. Chose *@timestamp* time field and click *Create*. 
+1. After logging in to Kibana GUI go to *Settings* tab and add *ITRS Log Analytics-perflogs-** pattern. Chose *@timestamp* time field and click *Create*. 
 2. Performance data logs should be now accessible from Kibana GUI Discovery tab ready to be visualize.
 
 ## OP5 Beat
@@ -482,11 +482,11 @@ Before uploading index-pattern or dashboard you have to authorize yourself:
 
 1.	After that you can upload it as any other template (Access Es node with SSH):
 
-		curl -XPUT "localhost:9200/_template/Energy Logserverperfdata" -H'Content-Type: application/json' -d@beats_template.json
+		curl -XPUT "localhost:9200/_template/ITRS Log Analyticsperfdata" -H'Content-Type: application/json' -d@beats_template.json
 
 ## Wazuh integration ##
 
-Energy Logserver can integrate with the Wazuh, which is lightweight agent is designed to perform a number of tasks with the objective of detecting threats and, when necessary, trigger automatic responses. The agent core capabilities are:
+ITRS Log Analytics can integrate with the Wazuh, which is lightweight agent is designed to perform a number of tasks with the objective of detecting threats and, when necessary, trigger automatic responses. The agent core capabilities are:
 
 - Log and events data collection
 - File and registry keys integrity monitoring
@@ -662,7 +662,7 @@ However, if it is to be run with encryption, you also need to change `proxy_pass
 /usr/share/oauth2_proxy/oauth2_proxy -config="/etc/oauth2_proxy/oauth2_proxy.cfg"
 ```
 
-In the browser enter the address pointing to the server with the Energy Logserver installation
+In the browser enter the address pointing to the server with the ITRS Log Analytics installation
 
  --type=alias
 ```
@@ -980,7 +980,7 @@ For *isSecure*: **false or true**
 
 ### The scope of integration
 
-The integration of Energy Logserver with the AWS cloud environment was prepared based on the following requirements:
+The integration of ITRS Log Analytics with the AWS cloud environment was prepared based on the following requirements:
 
 1. General information of the EC2 area, i.e .:
    - number of machines
@@ -1007,19 +1007,19 @@ The integration of Energy Logserver with the AWS cloud environment was prepared 
 10. Monitoring user activity and inactivity.
 11. Integration supports service for multiple member accounts in AWS organization
 
-The integration uses a Data Collector, i.e. the Energy Logserver host, which is responsible for receiving data from external sources.
+The integration uses a Data Collector, i.e. the ITRS Log Analytics host, which is responsible for receiving data from external sources.
 
 ### Data download mechanism
 
-The integration was prepared based on AWS (CLI), a unified tool for managing AWS services, with which it is possible to download and monitor many AWS services from the command line. The AWS (CLI) tool is controlled by the Energy Logserver data collector, which execute commands at specified intervals and captures the results of data received from the AWS service. The obtained data is processed and enriched and, as a result, saved to the Energy Logserver indexes.
+The integration was prepared based on AWS (CLI), a unified tool for managing AWS services, with which it is possible to download and monitor many AWS services from the command line. The AWS (CLI) tool is controlled by the ITRS Log Analytics data collector, which execute commands at specified intervals and captures the results of data received from the AWS service. The obtained data is processed and enriched and, as a result, saved to the ITRS Log Analytics indexes.
 
 ### AWS Cost & Usage Report
 
-The integration of Energy Logserver with the AWS billing environment requires access to AWS Cost & Usage reports, which generated in accordance with the agreed schedule constitute the basic source of data for cost analysis in Energy Logserver. The generated report is stored on S3 in the bucket defined for this purpose and cyclically downloaded from it by the Energy Logserver collector. After the report is downloaded, it is processed and saved to a dedicated Elasticsearch index. The configuration of generating and saving a report to S3 is described in the AWS documentation:  https://aws.amazon.com/aws-cost-management/aws-cost-and-usage-reporting/.
+The integration of ITRS Log Analytics with the AWS billing environment requires access to AWS Cost & Usage reports, which generated in accordance with the agreed schedule constitute the basic source of data for cost analysis in ITRS Log Analytics. The generated report is stored on S3 in the bucket defined for this purpose and cyclically downloaded from it by the ITRS Log Analytics collector. After the report is downloaded, it is processed and saved to a dedicated Elasticsearch index. The configuration of generating and saving a report to S3 is described in the AWS documentation:  https://aws.amazon.com/aws-cost-management/aws-cost-and-usage-reporting/.
 
 ### Cloud Trail
 
-The integration of the Energy Logserver with the AWS environment in order to receive events from the AWS environment requires access to the S3 bucket, on which the so-called AWS Trails. The operation of the Energy Logserver collector is based on periodical checking of the "cloudtraillogs" bucket and downloading new events from it. After the events are retrieved, they are processed so that the date the event occurred matches the date the document was indexed.
+The integration of the ITRS Log Analytics with the AWS environment in order to receive events from the AWS environment requires access to the S3 bucket, on which the so-called AWS Trails. The operation of the ITRS Log Analytics collector is based on periodical checking of the "cloudtraillogs" bucket and downloading new events from it. After the events are retrieved, they are processed so that the date the event occurred matches the date the document was indexed.
 The AWS Trail creation configuration is described in the AWS documentation:  https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-create-a-trail-using-the-console-first-time.html#creating-a-trail-in-the-console. 
 
 ### Configuration
@@ -1080,7 +1080,7 @@ In which the following parameters should be set:
 
 #### Logstash Pipelines
 
-Integration mechanisms are managed by the Logstash process, which is responsible for executing scripts, querying AWS, receiving data, reading data from files, processing the received data and enriching it and, as a result, submitting it to the Energy Logserver index. These processes were set up under the following Logstash pipelines:
+Integration mechanisms are managed by the Logstash process, which is responsible for executing scripts, querying AWS, receiving data, reading data from files, processing the received data and enriching it and, as a result, submitting it to the ITRS Log Analytics index. These processes were set up under the following Logstash pipelines:
 
 ```
 - pipeline.id: aws
@@ -1289,16 +1289,16 @@ The scope of integration include:
 Logstash is an event collector and executor of queries which, upon receipt, are initially processed and sent to the event buffer.
 
 #### Kafka
-Component that enables buffering of events before they are saved on Energy Logserver Data servers. Kafka also has the task of storing data when the Energy Logserver Data nodes are unavailable.
+Component that enables buffering of events before they are saved on ITRS Log Analytics Data servers. Kafka also has the task of storing data when the ITRS Log Analytics Data nodes are unavailable.
 
-#### Energy Logserver Data
-The Energy Logserver cluster is responsible for storing and sharing data.
+#### ITRS Log Analytics Data
+The ITRS Log Analytics cluster is responsible for storing and sharing data.
 
-#### Energy Logserver GUI
-Energy Logserver GUI is a graphical tool for searching, analyzing and visualizing data. It has an alert module that can monitor the collected metrics and take action in the event of a breach of the permitted thresholds.
+#### ITRS Log Analytics GUI
+ITRS Log Analytics GUI is a graphical tool for searching, analyzing and visualizing data. It has an alert module that can monitor the collected metrics and take action in the event of a breach of the permitted thresholds.
 
 ### Data sources
-Energy Logserver can access metrics from the Azure services via API. Service access can be configured with the same credentials if the account was configured with Azure AD.
+ITRS Log Analytics can access metrics from the Azure services via API. Service access can be configured with the same credentials if the account was configured with Azure AD.
 Configuration procedures:
 
  - https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal
@@ -1322,7 +1322,7 @@ To enable an Azure Insights data source, the following information is required f
    -  API Key
 
 ### Azure Command-Line Interface
-To verify the configuration and connect Energy Logserver to the Azure cloud, it is recommended to use the Azure command line interface:
+To verify the configuration and connect ITRS Log Analytics to the Azure cloud, it is recommended to use the Azure command line interface:
 
    -  https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest
 
@@ -1444,18 +1444,18 @@ Metrics List:
    - https://docs.microsoft.com/en-us/rest/api/application-insights/metrics/get 
 
 
-### Energy Logserver GUI
+### ITRS Log Analytics GUI
 
 #### Metrics
 Metric data is recorded in the monthly indexes:
 
    `azure-metrics -% {YYYY.MM}`
 
-The pattern index in Energy Logserver GUI is:
+The pattern index in ITRS Log Analytics GUI is:
 
   `azure-metrics *`
 
-Energy Logserver Discover data is available using the saved search: "[Azure Metrics] Metrics Details"
+ITRS Log Analytics Discover data is available using the saved search: "[Azure Metrics] Metrics Details"
 
 ![](/media/media/image232.png)
 
@@ -1484,7 +1484,7 @@ Events are stored in the monthly indexes:
 
 `azure_events -% {YYYY.MM}`
 
-The index pattern in Energy Logserver GUI is:
+The index pattern in ITRS Log Analytics GUI is:
 
 `azure_events *`
 
@@ -1510,7 +1510,7 @@ Componens:
 
 ## Google Cloud Platform
 
-The Energy Logserver accepts data from the Google Cloud Platform using the Pub/Sub service. Pub/Sub is used for streaming analytics and data integration pipelines to ingest and distribute data. It's equally effective as a messaging-oriented middleware for service integration or as a queue to parallelize tasks. [https://cloud.google.com/pubsub/docs/overview](https://cloud.google.com/pubsub/docs/overview)
+The ITRS Log Analytics accepts data from the Google Cloud Platform using the Pub/Sub service. Pub/Sub is used for streaming analytics and data integration pipelines to ingest and distribute data. It's equally effective as a messaging-oriented middleware for service integration or as a queue to parallelize tasks. [https://cloud.google.com/pubsub/docs/overview](https://cloud.google.com/pubsub/docs/overview)
 
 To fetch events from the GCP service add the following condition to the Logstash configuration file:
 
@@ -1558,7 +1558,7 @@ Authentication to the Pub/Sub service must be done with a private key: [https://
 
 
 ## F5 
-The Energy Logserver accepts data from the F5 system using the SYSLOG protocol. The F5 configuration procedure is as follows:  [https://support.f5.com/csp/article/K13080](https://support.f5.com/csp/article/K13080)
+The ITRS Log Analytics accepts data from the F5 system using the SYSLOG protocol. The F5 configuration procedure is as follows:  [https://support.f5.com/csp/article/K13080](https://support.f5.com/csp/article/K13080)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -1594,7 +1594,7 @@ Using the assigned tag, the documents is send to the appropriate index:
 
 ## Aruba Devices
 
-The Energy Logserver accepts data from the Aruba Devices system using the SYSLOG protocol. The Aruba Switches configuration procedure is as follows:  [https://community.arubanetworks.com/browse/articles/blogviewer?blogkey=80765a47-fe42-4d69-b500-277217f5312e](https://community.arubanetworks.com/browse/articles/blogviewer?blogkey=80765a47-fe42-4d69-b500-277217f5312e)
+The ITRS Log Analytics accepts data from the Aruba Devices system using the SYSLOG protocol. The Aruba Switches configuration procedure is as follows:  [https://community.arubanetworks.com/browse/articles/blogviewer?blogkey=80765a47-fe42-4d69-b500-277217f5312e](https://community.arubanetworks.com/browse/articles/blogviewer?blogkey=80765a47-fe42-4d69-b500-277217f5312e)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -1630,7 +1630,7 @@ Using the assigned tag, the documents is send to the appropriate index:
 
 ## Sophos Central
 
-The Energy Logserver accepts data from the Sophos Central system using the API interface. The Sophos Central configuration procedure is as follows: [https://github.com/sophos/Sophos-Central-SIEM-Integration](https://github.com/sophos/Sophos-Central-SIEM-Integration)
+The ITRS Log Analytics accepts data from the Sophos Central system using the API interface. The Sophos Central configuration procedure is as follows: [https://github.com/sophos/Sophos-Central-SIEM-Integration](https://github.com/sophos/Sophos-Central-SIEM-Integration)
 
 Pipeline configuration in Logstash collector:
 
@@ -1676,12 +1676,12 @@ Example of `config.ini` file:
    state_file_path = siem_sophos.json
 ```
 
-The Energy Logserver can make automatic configuration changes via the API in Sophos E-mail Appliance, such as: adding a domain to the blocked domain list. This is done by using the `command` alert method and entering the correct API request in the `Path to script/command` field.
+The ITRS Log Analytics can make automatic configuration changes via the API in Sophos E-mail Appliance, such as: adding a domain to the blocked domain list. This is done by using the `command` alert method and entering the correct API request in the `Path to script/command` field.
 
 ![](/media/media/image241.png)
 
 ## FreeRadius
-The Energy Logserver accepts data from the FreeRadius system using the SYSLOG protocol. The FreeRadius configuration procedure is as follows:  [https://wiki.freeradius.org/config/Logging](https://wiki.freeradius.org/config/Logging)
+The ITRS Log Analytics accepts data from the FreeRadius system using the SYSLOG protocol. The FreeRadius configuration procedure is as follows:  [https://wiki.freeradius.org/config/Logging](https://wiki.freeradius.org/config/Logging)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -1714,7 +1714,7 @@ Using the assigned tag, the documents is send to the appropriate index:
    ```
 
 ## Microsoft Advanced Threat Analytics
-The Energy Logserver accepts data from the Advanced Threat Analytics  system using the SYSLOG protocol with message in CEF format. The Advanced Threat Analytics  configuration procedure is as follows: [https://docs.microsoft.com/pl-pl/advanced-threat-analytics/cef-format-sa](https://docs.microsoft.com/pl-pl/advanced-threat-analytics/cef-format-sa)
+The ITRS Log Analytics accepts data from the Advanced Threat Analytics  system using the SYSLOG protocol with message in CEF format. The Advanced Threat Analytics  configuration procedure is as follows: [https://docs.microsoft.com/pl-pl/advanced-threat-analytics/cef-format-sa](https://docs.microsoft.com/pl-pl/advanced-threat-analytics/cef-format-sa)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -1814,7 +1814,7 @@ Using the assigned tag, the documents is send to the appropriate index:
 
 ## CheckPoint Firewalls
 
-The Energy Logserver accepts data from the CheckPoint Firewalls system using the SYSLOG protocol. The CheckPoint Firewalls configuration procedure is as follows: [https://sc1.checkpoint.com/documents/SMB_R80.20/AdminGuides/Locally_Managed/EN/Content/Topics/Configuring-External-Log-Servers.htm?TocPath=Appliance%20Configuration%7CLogs%20and%20Monitoring%7C_____3](https://sc1.checkpoint.com/documents/SMB_R80.20/AdminGuides/Locally_Managed/EN/Content/Topics/Configuring-External-Log-Servers.htm?TocPath=Appliance%20Configuration%7CLogs%20and%20Monitoring%7C_____3)
+The ITRS Log Analytics accepts data from the CheckPoint Firewalls system using the SYSLOG protocol. The CheckPoint Firewalls configuration procedure is as follows: [https://sc1.checkpoint.com/documents/SMB_R80.20/AdminGuides/Locally_Managed/EN/Content/Topics/Configuring-External-Log-Servers.htm?TocPath=Appliance%20Configuration%7CLogs%20and%20Monitoring%7C_____3](https://sc1.checkpoint.com/documents/SMB_R80.20/AdminGuides/Locally_Managed/EN/Content/Topics/Configuring-External-Log-Servers.htm?TocPath=Appliance%20Configuration%7CLogs%20and%20Monitoring%7C_____3)
 
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
@@ -1847,12 +1847,12 @@ Using the assigned tag, the documents is send to the appropriate index:
    }
    ```
 
-The Energy Logserver can make automatic configuration changes via the API in Checkpoint firewalls such as adding a rule in the firewall. This is done using the `command` alert method and entering the correct API request in the `Path to script/command` field.
+The ITRS Log Analytics can make automatic configuration changes via the API in Checkpoint firewalls such as adding a rule in the firewall. This is done using the `command` alert method and entering the correct API request in the `Path to script/command` field.
 
 ![](/media/media/image241.png)
 
 ## WAF F5 Networks Big-IP
-The Energy Logserver accepts data from the F5 system using the SYSLOG protocol. The F5 configuration procedure is as follows:  [https://support.f5.com/csp/article/K13080](https://support.f5.com/csp/article/K13080)
+The ITRS Log Analytics accepts data from the F5 system using the SYSLOG protocol. The F5 configuration procedure is as follows:  [https://support.f5.com/csp/article/K13080](https://support.f5.com/csp/article/K13080)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -1888,7 +1888,7 @@ Using the assigned tag, the documents is send to the appropriate index:
 
 ## Infoblox DNS Firewall
 
-The Energy Logserver accepts data from the Infoblox system using the SYSLOG protocol. The Infoblox configuration procedure is as follows:  [https://docs.infoblox.com/space/NAG8/22252249/Using+a+Syslog+Server#Specifying-Syslog-Servers](https://support.f5.com/csp/article/K13080)
+The ITRS Log Analytics accepts data from the Infoblox system using the SYSLOG protocol. The Infoblox configuration procedure is as follows:  [https://docs.infoblox.com/space/NAG8/22252249/Using+a+Syslog+Server#Specifying-Syslog-Servers](https://support.f5.com/csp/article/K13080)
 
 To identify and collect events from a Infoblox, is nessery to use Filebeat with `infoblox` module.
 To run Filebeat with infoblox moduel run following commnds:
@@ -1916,12 +1916,12 @@ and:
 filebeat test output
 ```
 
-The Energy Logserver can make automatic configuration changes via an API in the Infoblox DNS Firewall, e.g.: automatic domain locking. This is done using the `command` alert method and entering the correct API request in the `Path to script/command` field.
+The ITRS Log Analytics can make automatic configuration changes via an API in the Infoblox DNS Firewall, e.g.: automatic domain locking. This is done using the `command` alert method and entering the correct API request in the `Path to script/command` field.
 
 ![](/media/media/image241.png)
 
 ## CISCO Devices
-The Energy Logserver accepts data from the Cisco devices - router, switch, firewall and access point using the SYSLOG protocol. The Cisco devices configuration procedure is as follows: [https://www.ciscopress.com/articles/article.asp?p=426638&seqNum=3](https://support.f5.com/csp/article/K13080)
+The ITRS Log Analytics accepts data from the Cisco devices - router, switch, firewall and access point using the SYSLOG protocol. The Cisco devices configuration procedure is as follows: [https://www.ciscopress.com/articles/article.asp?p=426638&seqNum=3](https://support.f5.com/csp/article/K13080)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -1955,7 +1955,7 @@ Using the assigned tag, the documents is send to the appropriate index:
 
 ## Microsoft Windows Systems
 
-The Energy Logserver getting events from Microsoft Systems using the Winlogbeat agent. 
+The ITRS Log Analytics getting events from Microsoft Systems using the Winlogbeat agent. 
 
 To identify and collect events from a Windows eventchannel, it is nessery to setup following parameters in `winlobeat.yml` configuration file.
 
@@ -1974,10 +1974,10 @@ To identify and collect events from a Windows eventchannel, it is nessery to set
    # The Logstash hosts
   hosts: ["$IP:5044"]
 ```
-Where $IP is IP address of Energy Logserver datanode.
+Where $IP is IP address of ITRS Log Analytics datanode.
 
 ## Linux Systems
-The Energy Logserver accepts data from the Linux systems using the SYSLOG protocol.
+The ITRS Log Analytics accepts data from the Linux systems using the SYSLOG protocol.
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -2018,7 +2018,7 @@ processors:
 ```
 
 ## AIX Systems
-The Energy Logserver accepts data from the AIX systems using the SYSLOG protocol.
+The ITRS Log Analytics accepts data from the AIX systems using the SYSLOG protocol.
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -2052,7 +2052,7 @@ Using the assigned tag, the documents is send to the appropriate index:
 
 ## Microsoft Windows DNS, DHCP Service
 
-The Energy Logserver accepts data from the Microsoft DNS and DHCP services using the Filebeat agent.
+The ITRS Log Analytics accepts data from the Microsoft DNS and DHCP services using the Filebeat agent.
 
 To identify and collect events from Microsoft DNS and DHCP services, is nessery to set correct path do logs in Filebeat configuration file.
 
@@ -2081,7 +2081,7 @@ and:
 ```bash
 filebeat test output
 ```
-The Energy Logserver save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
 
 If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
 
@@ -2093,7 +2093,7 @@ processors:
 
 ## Microsoft IIS Service
 
-The Energy Logserver accepts data from the Microsoft IIS services using the Filebeat agent.
+The ITRS Log Analytics accepts data from the Microsoft IIS services using the Filebeat agent.
 
 To identify and collect events from Microsoft IIS services, is nessery to set correct path do logs in Filebeat configuration file.
 
@@ -2122,7 +2122,7 @@ and:
 ```bash
 filebeat test output
 ```
-The Energy Logserver save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
 
 If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
 
@@ -2134,7 +2134,7 @@ processors:
 
 ## Apache Service
 
-The Energy Logserver accepts data from the Linux Apache services using the Filebeat agent.
+The ITRS Log Analytics accepts data from the Linux Apache services using the Filebeat agent.
 
 To identify and collect events from Linux Apache services, is nessery to set correct path do logs in Filebeat configuration file.
 
@@ -2163,7 +2163,7 @@ and:
 ```bash
 filebeat test output
 ```
-The Energy Logserver save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
 
 If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
 
@@ -2175,7 +2175,7 @@ processors:
 
 ## Microsoft Exchange
 
-The Energy Logserver accepts data from the Microsoft Exchange services using the Filebeat agent.
+The ITRS Log Analytics accepts data from the Microsoft Exchange services using the Filebeat agent.
 
 To identify and collect events from Microsoft Exchange services, is nessery to set correct path do logs in Filebeat configuration file.
 
@@ -2204,7 +2204,7 @@ and:
 ```bash
 filebeat test output
 ```
-The Energy Logserver save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
 
 If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
 
@@ -2255,7 +2255,7 @@ processors:
 
 ## Microsoft AD, Radius, Network Policy Server
 
-The Energy Logserver accepts data from the Active Directory, Radius, Network Policy Server services using the Winlogbeat agent.
+The ITRS Log Analytics accepts data from the Active Directory, Radius, Network Policy Server services using the Winlogbeat agent.
 
 To identify and collect events from Active Directory, Radius, Network Policy Server services, is nessery to set correct path do logs in Winlogbeat configuration file.
 
@@ -2286,7 +2286,7 @@ and:
 ```bash
 winlogbeat test output
 ```
-The Energy Logserver save collected data in `winlogbeat-*` index pattern and its available to review in the Discover module.
+The ITRS Log Analytics save collected data in `winlogbeat-*` index pattern and its available to review in the Discover module.
 
 If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
 
@@ -2298,7 +2298,7 @@ processors:
 
 ## Microsoft MS SQL Server
 
-The Energy Logserver accepts data from the Microsoft MS SQL Server services using the Filebeat agent.
+The ITRS Log Analytics accepts data from the Microsoft MS SQL Server services using the Filebeat agent.
 
 To identify and collect events from Microsoft MS SQL Server services, is nessery to set correct path do logs in Filebeat configuration file.
 
@@ -2327,7 +2327,7 @@ and:
 ```bash
 filebeat test output
 ```
-The Energy Logserver save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
 
 If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
 
@@ -2339,7 +2339,7 @@ processors:
 
 ## MySQL Server
 
-The Energy Logserver accepts data from the MySQL Server services using the Filebeat agent.
+The ITRS Log Analytics accepts data from the MySQL Server services using the Filebeat agent.
 
 To identify and collect events from MySQL Server services, is nessery to set correct path do logs in Filebeat configuration file.
 
@@ -2368,7 +2368,7 @@ and:
 ```bash
 filebeat test output
 ```
-The Energy Logserver save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
 
 If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
 
@@ -2380,7 +2380,7 @@ processors:
 
 ## Oracle Database Server
 
-The Energy Logserver accepts data from the Oracle Database Server services using the Filebeat agent.
+The ITRS Log Analytics accepts data from the Oracle Database Server services using the Filebeat agent.
 
 To identify and collect events from Oracle Database Server services, is nessery to set correct path do logs in Filebeat configuration file.
 
@@ -2409,7 +2409,7 @@ and:
 ```bash
 filebeat test output
 ```
-The Energy Logserver save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
 
 If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
 
@@ -2421,7 +2421,7 @@ processors:
 
 ## Postgres Database Server
 
-The Energy Logserver accepts data from the Postgres Database Server services using the Filebeat agent.
+The ITRS Log Analytics accepts data from the Postgres Database Server services using the Filebeat agent.
 
 To identify and collect events from Oracle Postgres Server services, is nessery to set correct path do logs in Filebeat configuration file.
 
@@ -2450,7 +2450,7 @@ and:
 ```bash
 filebeat test output
 ```
-The Energy Logserver save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
 
 If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
 
@@ -2462,7 +2462,7 @@ processors:
 
 ## VMware Platform
 
-The Energy Logserver accepts data from the VMware platform using the SYSLOG protocol. The VMware vCenter Server configuration procedure is as follows:  [https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.monitoring.doc/GUID-FD51CE83-8B2A-4EBA-A16C-75DB2E384E95.html](https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.monitoring.doc/GUID-FD51CE83-8B2A-4EBA-A16C-75DB2E384E95.html)
+The ITRS Log Analytics accepts data from the VMware platform using the SYSLOG protocol. The VMware vCenter Server configuration procedure is as follows:  [https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.monitoring.doc/GUID-FD51CE83-8B2A-4EBA-A16C-75DB2E384E95.html](https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.monitoring.doc/GUID-FD51CE83-8B2A-4EBA-A16C-75DB2E384E95.html)
 
 To identify events from a specific source, add the following condition to the Logstash configuration file:
 
@@ -2499,7 +2499,7 @@ Using the assigned tag, the documents is send to the appropriate index:
 ## VMware Connector
 
 
-The Energy Logserver accepts logs from the VMware system using the VMware logstash pipeline. 
+The ITRS Log Analytics accepts logs from the VMware system using the VMware logstash pipeline. 
 
 
 We need set configuration in script following location:
@@ -2533,7 +2533,7 @@ output {
 
 ## Network Flows
 
-The Energy Logserver has the ability to receive and process various types of network flows. For this purpose, the following input ports have been prepared:
+The ITRS Log Analytics has the ability to receive and process various types of network flows. For this purpose, the following input ports have been prepared:
 
 - IPFIX, Netflow v10 - 4739/TCP, 4739/UDP
 - NetFlow v5,9 - 2055/UDP
@@ -2595,7 +2595,7 @@ Example of inputs configuration:
 
 ## Citrix XenApp and XenDesktop
 
-This Energy Logserver has the ability to acquire data from Citrix XenApp and XenDesktop. 
+This ITRS Log Analytics has the ability to acquire data from Citrix XenApp and XenDesktop. 
 
 An example command to enable Citrix Broker Service log to a file is as follows:
 
@@ -2607,7 +2607,7 @@ Or there is the possibility of extracting results, data from a report generated 
 
 [https://docs.citrix.com/en-us/xenapp-and-xendesktop/7-15-ltsr/monitor/configuration-logging.html#generate-reports](https://docs.citrix.com/en-us/xenapp-and-xendesktop/7-15-ltsr/monitor/configuration-logging.html#generate-reports)
 
-The Energy Logserver accepts data from Citrix XenApp and XenDesktop server using the Filebeat agent.
+The ITRS Log Analytics accepts data from Citrix XenApp and XenDesktop server using the Filebeat agent.
 
 To identify and collect events from Citrix XenApp and XenDesktop servers, you need to set the correct path to the logs in the Filebeat configuration file.
 
@@ -2636,7 +2636,7 @@ and:
 ```bash
 filebeat test output
 ```
-The Energy Logserver save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
+The ITRS Log Analytics save collected data in `filebeat-*` index pattern and its available to review in the Discover module.
 
 If additional agent data information is required, e.g.: IP address, add the following section in the agent configuration file:
 
@@ -2648,7 +2648,7 @@ processors:
 
 ## Sumologic Cloud SOAR
 
-The Energy Logserver has the ability to forward detected alerts to *Sumologic Cloud SOAR*. To do this, select the "syslog" method in the alert definition and set the following parameters:
+The ITRS Log Analytics has the ability to forward detected alerts to *Sumologic Cloud SOAR*. To do this, select the "syslog" method in the alert definition and set the following parameters:
 
   - Host
   - Port
@@ -2658,7 +2658,7 @@ The Energy Logserver has the ability to forward detected alerts to *Sumologic Cl
 
 ![](/media/media/image237.png)
 
-Energy Logserver has the ability to create security dashboards from data found in SOAR, such as statistics. It has the ability to create and configure master views from extracted SOAR data. 
+ITRS Log Analytics has the ability to create security dashboards from data found in SOAR, such as statistics. It has the ability to create and configure master views from extracted SOAR data. 
 
 An example of an API request retrieving data:
 ```bash
@@ -2693,7 +2693,7 @@ output {
 ```
 ## Microsfort System Center Operations Manager
 
-The Energy Logserver has the ability to integrate with MS SCOM (System Center Operations Manager) monitoring systems to monitor metrics and service availability in the context of the end system user. 
+The ITRS Log Analytics has the ability to integrate with MS SCOM (System Center Operations Manager) monitoring systems to monitor metrics and service availability in the context of the end system user. 
 
 An example of the integration pipeline configuration with SCOM:
 
@@ -2858,7 +2858,7 @@ The SLQ query stored in `/usr/share/logstash/plugin/query` file:
 
 ## JBoss
 
-The Energy Logserver accepts data from the JBoss platform using the Filebeat agent. Example configuration file for Filebeat:
+The ITRS Log Analytics accepts data from the JBoss platform using the Filebeat agent. Example configuration file for Filebeat:
 ```
 filebeat:
   prospectors:
@@ -2954,7 +2954,7 @@ chown logstash:kibana /etc/logstash/lists/
 chmod g+w /etc/logstash/lists/
 ```
 
- - Log in to Energy Logserver GUI and go to Scheduler app. Set it up with below options and push “Submit” button:
+ - Log in to ITRS Log Analytics GUI and go to Scheduler app. Set it up with below options and push “Submit” button:
 
 Name:           MispThreatList
 Cron pattern:   0 1 * * *

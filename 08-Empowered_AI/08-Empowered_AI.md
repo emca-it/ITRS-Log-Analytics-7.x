@@ -1,6 +1,6 @@
 # Empowered AI
 
-`Empowered AI` is a module of Energy Logserver containing mathematical algorithms for data science. It is a licensed extension for SIEM deployment, designed to help SOC teams detect data that is difficult to identify with regular approaches. Advanced mathematical sorting, grouping, and forecasting enriched with statistics create a new outlook on security posture.
+`Empowered AI` is a module of ITRS Log Analytics containing mathematical algorithms for data science. It is a licensed extension for SIEM deployment, designed to help SOC teams detect data that is difficult to identify with regular approaches. Advanced mathematical sorting, grouping, and forecasting enriched with statistics create a new outlook on security posture.
 
 `Empowered AI` is an ongoing project, continuously improved by a team of mathematicians, data scientists, and security analysts.
 

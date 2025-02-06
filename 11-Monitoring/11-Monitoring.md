@@ -2,7 +2,7 @@
 
 ## About Skimmer
 
-Energy Logserver uses a monitoring module called Skimmer to monitor the performance of its hosts. Metrics and conditions of services are retrieved using the API.
+ITRS Log Analytics uses a monitoring module called Skimmer to monitor the performance of its hosts. Metrics and conditions of services are retrieved using the API.
 
 The services that are supported are:
 
@@ -170,6 +170,6 @@ The Skimmer dashboard includes the following monitoring parameters:
 
 ### Expected Data Nodes ###
 
-Based on the collected data on the performance of the Energy Logserver environment, the Skimmer automatically indicates the need to run additional data nodes.
+Based on the collected data on the performance of the ITRS Log Analytics environment, the Skimmer automatically indicates the need to run additional data nodes.
 
 ![](/media/media/image151.png) 

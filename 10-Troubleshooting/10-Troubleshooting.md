@@ -124,7 +124,7 @@ echo "server.ironsecret: \"$(</dev/urandom tr -dc _A-Z-a-z-0-9 | head -c32)\"" >
 
 ## Diagnostic tool
 
-Energy Logserver includes a diagnostic tool that helps solve your problem by collecting system data necessary for problem analysis by the support team.
+ITRS Log Analytics includes a diagnostic tool that helps solve your problem by collecting system data necessary for problem analysis by the support team.
 
 The diagnostic tool is located in the installation directory: `/usr/share/elasticsearch/utils/diagnostic-tool.sh`
 
@@ -296,11 +296,11 @@ output:
       }
      }
 
-### Verification of Energy Logserver GUI service #
+### Verification of ITRS Log Analytics GUI service #
 
-To verify of Energy Logserver GUI service you can use following command:
+To verify of ITRS Log Analytics GUI service you can use following command:
 
-- control the Energy Logserver GUI service via **systemd**:
+- control the ITRS Log Analytics GUI service via **systemd**:
 
         systemctl status kibana
 
@@ -313,7 +313,7 @@ output:
            CGroup: /system.slice/kibana.service                                                                                           
                    └─1330 /usr/share/kibana/bin/../node/bin/node --no-warnings /usr/share/kibana/bin/../src/cli -c /etc/kibana/kibana.yml 
 
-- control the Energy Logserver GUI via **port tcp/http**:
+- control the ITRS Log Analytics GUI via **port tcp/http**:
 
         curl -XGET '127.0.0.1:5601/'
 
@@ -328,7 +328,7 @@ output:
             window.location = defaultRoute;
           }</script>
 
-- Control the Energy Logserver GUI via **log file**:
+- Control the ITRS Log Analytics GUI via **log file**:
 
         tail -f /var/log/messages
 

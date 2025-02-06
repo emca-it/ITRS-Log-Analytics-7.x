@@ -2458,7 +2458,7 @@ actions:
 
 ## Task Management
 
-Energy Logserver provides the ability to manage tasks. Table with running tasks is located in `Tasks` section.
+ITRS Log Analytics provides the ability to manage tasks. Table with running tasks is located in `Tasks` section.
 
 ![](/media/media/task_management1.png)
 
@@ -14636,9 +14636,9 @@ List of automation nodes:
 
 ## Cooperation of logserver and antivirus program
 
-Energy Logserver utilizes a high disk I/O throughput for its typical indexing tasks. Specifically, disk write operations are highly intensive. These I/O writes can conflict with any product that installs a driver intermediary between our software and the operating system, such as antivirus software that scans when the application accesses mass storage.
+ITRS Log Analytics utilizes a high disk I/O throughput for its typical indexing tasks. Specifically, disk write operations are highly intensive. These I/O writes can conflict with any product that installs a driver intermediary between our software and the operating system, such as antivirus software that scans when the application accesses mass storage.
 
-When running Energy Logserver or its component on a computer with antivirus software installed, it is necessary to exclude all Energy software processes, including directories such as the installation directory, from any kind of scanning when accessing application resources.
+When running ITRS Log Analytics or its component on a computer with antivirus software installed, it is necessary to exclude all Energy software processes, including directories such as the installation directory, from any kind of scanning when accessing application resources.
 	
 **Directories to exclude:**
 -        /usr/share/elasticsearch

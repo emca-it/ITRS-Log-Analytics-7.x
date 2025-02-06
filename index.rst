@@ -1,4 +1,4 @@
-Energy Logserver 7.x User Guide
+ITRS Log Analytics 7.x User Guide
 ------------------------------------
 
 .. toctree::
